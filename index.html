@@ -138,6 +138,7 @@ a{color:inherit;text-decoration:none}
 .pill.sk{color:var(--accent-d)}
 .pill.eve{background:#EEF0FA;color:#4A56A8}
 .pill.sp{background:var(--warn-soft);color:var(--warn)}
+.pill.who1{background:var(--res1-soft);color:var(--res1)} .pill.who2{background:var(--res2-soft);color:var(--res2)} .pill.who3{background:var(--res3-soft);color:var(--res3)}
 .cell.empty{background:transparent;border:1px dashed var(--line-2)}
 
 .ctab-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface)}
@@ -274,7 +275,7 @@ a{color:inherit;text-decoration:none}
     <p class="sub">חודש קליטה למתמחה — מערכת ניהול ומעקב</p>
     <div class="hint">המערכת שקופה ומבוססת אמון. בחר/י את הכניסה שלך.</div>
     <div class="prog-list" id="entryList"></div>
-    <p class="foot" style="padding-top:18px">הנתונים נשמרים מקומית בדפדפן זה · גרסה 2.0</p>
+    <p class="foot" style="padding-top:18px" id="verFoot">הנתונים נשמרים מקומית בדפדפן זה</p>
   </div>
 </div>
 
@@ -342,6 +343,7 @@ a{color:inherit;text-decoration:none}
    ============================================================ */
 var CONFIG={ SUPABASE_URL:'', SUPABASE_KEY:'' };  /* למילוי בעת מעבר לענן — ראה README_פריסה */
 var KEY='orientation_app_v2';
+var VERSION='3.0';  /* מתעדכן בכל שינוי */
 var HE_DOW=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 var HE_MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 var STATIONS=['אדמיניסטרציה ובטיחות','חדר לידה — צמוד מיילדת','חדר לידה — צמוד רופא בכיר','חדר ניתוח','מכון US','יולדות א׳ (HR)','יולדות ב׳','חדר קבלה','השלמות / מבחן'];
@@ -536,12 +538,11 @@ function defaults(){
     ],
     calendar:[],
     archive:[],
-    principles:[],
+    principles:defaultPrinciples(),
     perResident:{}
   };
-  data.calendar=genPlan(data.cohort.startDate);
   var allIds=data.residents.map(function(r){return r.id;});
-  data.calendar.forEach(function(d){d.residents=allIds.slice();});
+  data.calendar=genBlankPlan(data.cohort.startDate,allIds);
   data.residents.forEach(function(r){
     data.perResident[r.id]={skillStatus:{},countProgress:{},srcMastery:{},certManual:{},examScore:'',dailyNotes:[],mgrNotes:[],feedback:{submitted:false,text:''},onboardDone:{},sourceNotes:{}};
   });
@@ -559,7 +560,8 @@ function migrate(){
   if(!DB)return;
   if(!DB.cohort)DB.cohort={label:'מאי 2026',monthLead:'ד״ר שטרן',startDate:'2026-05-03',locked:false};
   if(!DB.archive)DB.archive=[];
-  if(!DB.principles)DB.principles=[];
+  if(!DB.principles||!DB.principles.length||!DB.principles.some(function(p){return p.kind==='rotation'||p.kind==='shared';}))DB.principles=defaultPrinciples();
+  (DB.calendar||[]).forEach(function(d){if(!d.assign){d.assign={};(d.residents||[]).forEach(function(id){d.assign[id]={station:d.station||'',skill:d.skill||'',team:d.team||''};});}if(!d.eval||typeof d.eval==='string')d.eval={};});
   Object.keys(DB.perResident||{}).forEach(function(k){if(DB.perResident[k]&&!DB.perResident[k].mgrNotes)DB.perResident[k].mgrNotes=[];});
   if(!DB.calendar||!DB.calendar.length){DB.calendar=genPlan(DB.cohort.startDate);var ids=DB.residents.map(function(r){return r.id;});DB.calendar.forEach(function(d){d.residents=ids.slice();});}
   DB.calendar.forEach(function(d){if(!d.residents)d.residents=DB.residents.map(function(r){return r.id;});});
@@ -620,7 +622,7 @@ function resSwitch(){
   if(ST.role!=='mgr')return '';
   return '<div class="res-switch mgr-only flex">'+cohortResidents().map(function(r){return '<button class="rs '+(r.id===ST.rid?'on':'')+'" onclick="switchRes(\''+r.id+'\')">'+esc(r.name)+'</button>';}).join('')+'</div>';
 }
-function switchRes(id){ST.rid=id;document.getElementById('ctxName').textContent='מנהל · '+curRes().name;render();}
+function switchRes(id){ST.rid=id;render();}
 
 /* ---------- HOME ---------- */
 function row(k,v){return '<div class="today-row"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>';}
@@ -648,11 +650,11 @@ function renderHome(){
     if(mn.length){html+='<div class="sec">הערות ממנהל התוכנית</div><div class="card" style="padding:6px 22px">';mn.forEach(function(n){html+='<div class="note-day"><span class="d">'+fmtDMY(parseISO(n.date))+'</span><span class="t">'+esc(n.text)+'</span></div>';});html+='</div>';}
   }
   html+='<div class="grid g2"><div class="today"><div class="lbl">התוכנית של היום</div><div class="dt">'+(today?HE_DOW[parseISO(today.date).getDay()]+', '+parseISO(today.date).getDate()+'.'+(parseISO(today.date).getMonth()+1):'אין יום מתוכנן להיום')+'</div>';
-  if(today){html+=row('תחנה',today.station)+row('מיומנות',today.skill)+row('משובץ עם',today.team||'—');if(today.academic)html+=row('אקדמי',today.academic);if(today.special)html+='<div class="today-row"><span class="k">מיוחד</span><span class="v" style="color:var(--warn)">'+esc(today.special)+'</span></div>';if(today.evening)html+=row('ערב','תורן ערב ללימוד (עד 21:00)');}
+  if(today){var ts=slot(today,ST.rid);html+=row('תחנה',ts.station||'—')+row('מיומנות',ts.skill||'—')+row('משובץ עם',ts.team||'—');if(today.academic)html+=row('אקדמי',today.academic);if(today.special)html+='<div class="today-row"><span class="k">מיוחד</span><span class="v" style="color:var(--warn)">'+esc(today.special)+'</span></div>';if(today.evening)html+=row('ערב','תורן ערב ללימוד (עד 21:00)');}
   else{html+='<div style="color:var(--muted);font-size:14px;padding-top:6px">אין יום משובץ להיום. ראה/י לוח חודשי.</div>';}
   html+='</div><div><div class="mini"><div class="stat"><div class="n">'+trainPct()+'%</div><div class="l">התקדמות כוללת</div><div class="bar"><i style="width:'+trainPct()+'%"></i></div></div></div>';
   html+='<div class="card" style="margin-top:14px;padding:18px 20px"><div class="lbl" style="font-size:12px;font-weight:700;color:var(--accent-d);text-transform:uppercase">בקרוב בלו״ז</div><div class="up-list">';
-  if(up.length)up.forEach(function(d){var dt=parseISO(d.date);html+='<div class="up"><span class="day">'+HE_DOW[dt.getDay()].slice(0,3)+' '+dt.getDate()+'</span><span>'+esc(d.station)+'</span>'+(d.special?'<span class="tag" style="background:var(--warn-soft);color:var(--warn)">'+esc(d.special.split(' — ')[0])+'</span>':(d.academic?'<span class="tag">'+esc(d.academic.split(' · ')[1]||'אקדמי')+'</span>':''))+'</div>';});
+  if(up.length)up.forEach(function(d){var dt=parseISO(d.date);html+='<div class="up"><span class="day">'+HE_DOW[dt.getDay()].slice(0,3)+' '+dt.getDate()+'</span><span>'+esc(slot(d,ST.rid).station||'—')+'</span>'+(d.special?'<span class="tag" style="background:var(--warn-soft);color:var(--warn)">'+esc(d.special.split(' — ')[0])+'</span>':(d.academic?'<span class="tag">'+esc(d.academic.split(' · ')[1]||'אקדמי')+'</span>':''))+'</div>';});
   else html+='<div style="color:var(--muted);font-size:13px;padding-top:8px">אין ימים קרובים.</div>';
   html+='</div></div></div></div>';
   html+='<div class="sec">מיומנויות הכשרה <span class="ln"></span><button class="ttool" onclick="go(\'train\')">לכל היעדים →</button></div><div class="goal-list">';
@@ -664,36 +666,36 @@ function markNoteRead(rid,i){var arr=DB.perResident[rid]&&DB.perResident[rid].da
 function addMgrNote(){var e=document.getElementById('mgrNoteIn');var v=e?e.value.trim():'';if(!v)return;if(!pr().mgrNotes)pr().mgrNotes=[];pr().mgrNotes.push({date:iso(new Date()),text:v});save();renderHome();toast('ההערה נשלחה למתמחה');}
 function progressFor(rid){var prev=ST.rid;ST.rid=rid;var v=trainPct();ST.rid=prev;return v;}
 
-/* ---------- CALENDAR (shared, multi-resident assignment) ---------- */
-var calView='grid';
-function setCalView(v){calView=v;renderCal();}
+/* ---------- CALENDAR (shared days · per-resident stations) ---------- */
+function slot(d,rid){if(!d.assign)d.assign={};if(!d.assign[rid])d.assign[rid]={station:'',skill:'',team:''};return d.assign[rid];}
+function whoCls(color){return color==='res1'?'who1':color==='res2'?'who2':'who3';}
 function rchips(d,clickable){
   return cohortResidents().map(function(r){
     var on=dayHas(d,r.id);
-    if(clickable)return '<button class="rtog '+r.color+(on?' on':'')+'" title="'+esc(r.name)+'" onclick="toggleAssign(\''+d.date+'\',\''+r.id+'\');event.stopPropagation()">'+esc(initials(r))+'</button>';
+    if(clickable)return '<button class="rtog '+r.color+(on?' on':'')+'" title="'+esc(r.name)+'" onclick="toggleAssign(\''+d.date+'\',\''+r.id+'\')">'+esc(initials(r))+'</button>';
     return on?'<span class="rchip '+r.color+'" title="'+esc(r.name)+'">'+esc(initials(r))+'</span>':'';
   }).join('');
 }
 function renderCal(){
   var html=resSwitch();
   html+='<div class="head"><div class="title">תצוגת לוח חודשי</div>';
-  html+='<div class="subtitle res-only">התוכנית המשותפת שהוכנה עבורכם. הימים שלך מודגשים.</div>';
-  html+='<div class="subtitle mgr-only">תצוגה בלבד. עריכת הלוח והשיבוצים — במסך "ניהול תוכנית".</div></div>';
+  html+='<div class="subtitle res-only">התוכנית שהוכנה עבורכם. הימים שלך מודגשים.</div>';
+  html+='<div class="subtitle mgr-only">תצוגה בלבד. עריכת הלוח — במסך "ניהול תוכנית".</div></div>';
   html+='<div class="cal-bar">';
   cohortResidents().forEach(function(x){html+='<span class="legend"><span class="sw" style="background:var(--'+x.color+')"></span> '+esc(x.name.replace('ד״ר ',''))+'</span>';});
   html+='<span class="legend" style="font-weight:700;color:var(--ink)">'+esc(DB.cohort.label)+'</span><span class="push"></span>';
   html+='<span class="legend" style="color:'+(isLocked()?'var(--warn)':'var(--ok)')+'">'+(isLocked()?'נעולה להערכה':'פתוחה לצפייה')+'</span>';
   html+='</div>';
-  if(!DB.calendar.length){html+='<div class="card">הלוח ריק. בנה אותו במסך "ניהול תוכנית" ← "בניית לוח התוכנית".</div>';document.getElementById('s-cal').innerHTML=html;return;}
+  if(!DB.calendar.length){html+='<div class="card">הלוח ריק. בנה אותו במסך "ניהול תוכנית".</div>';document.getElementById('s-cal').innerHTML=html;return;}
   html+=calGrid();
   document.getElementById('s-cal').innerHTML=html;
 }
-function short(s){return s.length>16?s.slice(0,15)+'…':s;}
+function short(s){s=s||'';return s.length>15?s.slice(0,14)+'…':s;}
 function calGrid(){
   var first=parseISO(DB.calendar[0].date),gridStart=addDays(first,-first.getDay());
   var last=parseISO(DB.calendar[DB.calendar.length-1].date);
   var byDate={};DB.calendar.forEach(function(d){byDate[d.date]=d;});
-  var todayISO=iso(new Date()),clickable=false;
+  var todayISO=iso(new Date());
   var html='<div class="cal"><div class="dow">ראשון</div><div class="dow">שני</div><div class="dow">שלישי</div><div class="dow">רביעי</div><div class="dow">חמישי</div>';
   var cur=new Date(gridStart),guard=0;
   while(cur<=last && guard<60){
@@ -701,10 +703,12 @@ function calGrid(){
       var dISO=iso(cur),d=byDate[dISO];
       if(d){
         var dim=(ST.role==='res'&&!dayHas(d,ST.rid))?' dim':'';
+        var shownIds=(ST.role==='res')?(dayHas(d,ST.rid)?[ST.rid]:[]):(d.residents||[]);
+        var body='';
+        shownIds.forEach(function(id){var r=findRes(id);if(!r)return;var s=slot(d,id);body+='<span class="pill '+whoCls(r.color)+'">'+esc(initials(r))+' · '+esc(short(s.station||'—'))+'</span>';});
         html+='<div class="cell '+(dISO===todayISO?'today':'')+dim+'">'+
           '<div class="dn">'+cur.getDate()+(d.academic?'<span class="hh">'+esc(d.academic.split(' · ')[1]||d.academic)+'</span>':'')+'</div>'+
-          '<div class="rrow">'+rchips(d,clickable)+'</div>'+
-          '<span class="pill st">'+esc(short(d.station))+'</span><span class="pill sk">'+esc(short(d.skill))+'</span>'+
+          body+
           (d.evening?'<span class="pill eve">תורן ערב</span>':'')+(d.special?'<span class="pill sp">'+esc(d.special.split(' — ')[0])+'</span>':'')+
         '</div>';
       }else html+='<div class="cell empty"><div class="dn">'+cur.getDate()+'</div></div>';
@@ -712,84 +716,105 @@ function calGrid(){
     }
     cur=addDays(cur,2);guard++;
   }
-  html+='</div><p class="foot">בנייד הלוח מוצג כרשימת ימים. שבוע אחרון — סימולציית חירום; לאחר 3 שבועות — שיחת חתך עם מנהל התוכנית.</p>';
+  html+='</div><p class="foot">בנייד הלוח מוצג כרשימת ימים.</p>';
   return html;
 }
 function opts(arr,v){var h=arr.map(function(o){return '<option '+(o===v?'selected':'')+'>'+esc(o)+'</option>';}).join('');if(arr.indexOf(v)<0&&v)h+='<option selected>'+esc(v)+'</option>';return h;}
-function calTable(){
+var FLD='border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;background:var(--bg)';
+function renderSchedule(){
   var dis=isLocked()?'disabled':'';
-  var rows='';
+  if(!DB.calendar.length)return '<div class="card" style="color:var(--muted)">הלוח ריק. לחץ "צור לוח מתאריך ההתחלה" או "מלא תבנית אוטומטית".</div>';
+  var html='';
   DB.calendar.forEach(function(d){
     var dt=parseISO(d.date);
-    rows+='<tr><td class="dcol">'+HE_DOW[dt.getDay()]+'<br><span class="dnum">'+dt.getDate()+'.'+(dt.getMonth()+1)+'</span></td>'+
-      '<td><div class="acell">'+rchips(d,!isLocked())+'</div></td>'+
-      '<td><select '+dis+' onchange="updField(\''+d.date+'\',\'station\',this.value)">'+opts(STATIONS,d.station)+'</select></td>'+
-      '<td><select '+dis+' onchange="updField(\''+d.date+'\',\'skill\',this.value)">'+opts(SKILLS,d.skill)+'</select></td>'+
-      '<td><input '+dis+' value="'+esc(d.team||'')+'" onchange="updField(\''+d.date+'\',\'team\',this.value)"></td>'+
-      '<td><input '+dis+' value="'+esc(d.academic||'')+'" placeholder="—" onchange="updField(\''+d.date+'\',\'academic\',this.value)"></td>'+
-      '<td style="text-align:center"><input type="checkbox" '+dis+' '+(d.evening?'checked':'')+' onchange="updField(\''+d.date+'\',\'evening\',this.checked)"></td>'+
-      '<td><input '+dis+' value="'+esc(d.special||'')+'" placeholder="—" onchange="updField(\''+d.date+'\',\'special\',this.value)"></td>'+
-      '<td><input '+dis+' value="'+esc(d.homework||'')+'" placeholder="—" onchange="updField(\''+d.date+'\',\'homework\',this.value)"></td>'+
-      '<td style="white-space:nowrap"><button class="ttool" onclick="toggleEval(\''+d.date+'\')" title="הערכת היום">הערכה</button>'+(isLocked()?'':' <button class="xrow" onclick="removeDay(\''+d.date+'\')" title="הסר יום">×</button>')+'</td></tr>'+
-      '<tr id="ev-'+d.date+'" style="display:none"><td colspan="10" style="background:#FBFCFC"><label style="font-size:12px;font-weight:700;color:var(--muted)">הערכת היום (מנהל)</label><textarea '+dis+' style="width:100%;min-height:46px;border:1px solid var(--line-2);border-radius:8px;padding:8px;background:var(--bg);margin-top:4px" placeholder="הערכה / משוב ליום זה..." onchange="updField(\''+d.date+'\',\'eval\',this.value)">'+esc(d.eval||'')+'</textarea></td></tr>';
+    html+='<div class="card" style="padding:13px 15px;margin-bottom:10px">';
+    html+='<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:9px"><b style="color:var(--accent-d)">'+HE_DOW[dt.getDay()]+' '+fmtDMY(dt)+'</b><span class="push"></span>'+(isLocked()?'':'<button class="xrow" onclick="removeDay(\''+d.date+'\')" title="הסר יום">×</button>')+'</div>';
+    html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:9px">';
+    html+='<input '+dis+' value="'+esc(d.academic||'')+'" placeholder="אקדמי" onchange="updDay(\''+d.date+'\',\'academic\',this.value)" style="flex:1;min-width:120px;'+FLD+'">';
+    html+='<input '+dis+' value="'+esc(d.special||'')+'" placeholder="אירוע משותף (סדנה/סימולציה/מבחן)" onchange="updDay(\''+d.date+'\',\'special\',this.value)" style="flex:2;min-width:160px;'+FLD+'">';
+    html+='<label class="toggle" style="font-size:13px;font-weight:600"><input type="checkbox" '+dis+' '+(d.evening?'checked':'')+' onchange="updDay(\''+d.date+'\',\'evening\',this.checked)"> תורן ערב</label>';
+    html+='</div>';
+    cohortResidents().forEach(function(r){
+      var on=dayHas(d,r.id),s=slot(d,r.id);
+      html+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line)">';
+      html+='<button class="rtog '+r.color+(on?' on':'')+'" '+dis+' onclick="toggleAssign(\''+d.date+'\',\''+r.id+'\')" title="שבץ/הסר">'+esc(initials(r))+'</button>';
+      if(on){
+        html+='<select '+dis+' onchange="updSlot(\''+d.date+'\',\''+r.id+'\',\'station\',this.value)" style="flex:1;min-width:130px;'+FLD+'">'+opts(STATIONS,s.station)+'</select>';
+        html+='<select '+dis+' onchange="updSlot(\''+d.date+'\',\''+r.id+'\',\'skill\',this.value)" style="flex:1;min-width:130px;'+FLD+'">'+opts(SKILLS,s.skill)+'</select>';
+        html+='<input '+dis+' value="'+esc(s.team||'')+'" placeholder="משובץ עם" onchange="updSlot(\''+d.date+'\',\''+r.id+'\',\'team\',this.value)" style="width:120px;'+FLD+'">';
+        html+='<button class="ttool" onclick="toggleEval(\''+d.date+'_'+r.id+'\')">הערכה ▾</button></div>';
+        html+='<div id="ev-'+d.date+'_'+r.id+'" style="display:none;padding:2px 0 8px"><textarea '+dis+' placeholder="הערכת '+esc(r.name)+' ליום זה..." onchange="updEval(\''+d.date+'\',\''+r.id+'\',this.value)" style="width:100%;min-height:44px;'+FLD+'">'+esc((d.eval&&d.eval[r.id])||'')+'</textarea></div>';
+      }else{html+='<span style="font-size:13px;color:var(--faint)">לא משובץ ביום זה</span></div>';}
+    });
+    html+='</div>';
   });
-  var html='<div class="ctab-wrap"><table class="ctab"><thead><tr><th>יום</th><th>משובצים</th><th>תחנה</th><th>מיומנות</th><th>משובץ עם</th><th>אקדמי</th><th>ערב</th><th>אירוע מיוחד</th><th>שיעורי בית</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-  if(!isLocked())html+='<button class="btn btn-sm" style="margin-top:12px" onclick="addDay()">+ הוסף יום</button>';
-  else html+='<p class="foot">התוכנית נעולה להערכה — לפתיחה לחץ "פתח לעריכה".</p>';
+  if(!isLocked())html+='<button class="btn btn-sm" onclick="addDay()">+ הוסף יום</button>';
+  else html+='<p class="foot">התוכנית נעולה — לפתיחה לחץ "פתח לעריכה".</p>';
   return html;
 }
-function toggleAssign(date,rid){if(isLocked())return;var d=DB.calendar.find(function(x){return x.date===date;});if(!d)return;if(!d.residents)d.residents=[];var i=d.residents.indexOf(rid);if(i>=0)d.residents.splice(i,1);else d.residents.push(rid);save();renderCal();}
-function assignAll(){if(isLocked())return;var ids=cohortResidents().map(function(r){return r.id;});DB.calendar.forEach(function(d){d.residents=ids.slice();});save();renderCal();toast('כל המתמחים שובצו לכל הימים');}
-function updField(date,field,value){if(isLocked())return;var d=DB.calendar.find(function(x){return x.date===date;});if(!d)return;d[field]=value;save();}
-function addDay(){if(isLocked())return;var base=DB.calendar.length?parseISO(DB.calendar[DB.calendar.length-1].date):new Date();var nd=addDays(base,1);while(nd.getDay()===5||nd.getDay()===6)nd=addDays(nd,1);DB.calendar.push({date:iso(nd),station:STATIONS[1],skill:SKILLS[1],team:'',academic:(nd.getDay()===2?'הדרכת מתמחים · 07:00':nd.getDay()===3?'הרצאות פוריות · 07:15':''),evening:false,special:'',homework:'',residents:cohortResidents().map(function(r){return r.id;})});save();renderCal();toast('יום נוסף');}
-function removeDay(date){if(isLocked())return;if(!confirm('להסיר את היום מהתוכנית?'))return;DB.calendar=DB.calendar.filter(function(x){return x.date!==date;});save();renderCal();}
+function toggleAssign(date,rid){if(isLocked())return;var d=dayAt(date);if(!d)return;if(!d.residents)d.residents=[];var i=d.residents.indexOf(rid);if(i>=0)d.residents.splice(i,1);else{d.residents.push(rid);slot(d,rid);}save();render();}
+function updDay(date,field,value){if(isLocked())return;var d=dayAt(date);if(!d)return;d[field]=value;save();}
+function updSlot(date,rid,field,value){if(isLocked())return;var d=dayAt(date);if(!d)return;slot(d,rid)[field]=value;save();}
+function updEval(date,rid,value){if(isLocked())return;var d=dayAt(date);if(!d)return;if(!d.eval)d.eval={};d.eval[rid]=value;save();}
+function addDay(){if(isLocked())return;var base=DB.calendar.length?parseISO(DB.calendar[DB.calendar.length-1].date):parseISO(DB.cohort.startDate);var nd=addDays(base,1);while(nd.getDay()===5||nd.getDay()===6)nd=addDays(nd,1);var ids=cohortResidents().map(function(r){return r.id;});var day={date:iso(nd),academic:(nd.getDay()===2?'הדרכת מתמחים · 07:00':nd.getDay()===3?'הרצאות פוריות · 07:15':''),evening:false,special:'',homework:'',residents:ids.slice(),assign:{},eval:{}};ids.forEach(function(id){day.assign[id]={station:'',skill:'',team:''};});DB.calendar.push(day);save();render();toast('יום נוסף');}
+function removeDay(date){if(isLocked())return;if(!confirm('להסיר את היום מהתוכנית?'))return;DB.calendar=DB.calendar.filter(function(x){return x.date!==date;});save();render();}
 function toggleLock(){DB.cohort.locked=!DB.cohort.locked;save();render();toast(DB.cohort.locked?'התוכנית ננעלה להערכה':'התוכנית נפתחה לעריכה');}
 
-/* ---------- program builder (setup checklist) ---------- */
-var SETUP_ITEMS=[
- {id:'midwife',label:'עבודת מיילדת',kind:'range',station:'חדר לידה — צמוד מיילדת',skill:'עבודת מיילדת'},
- {id:'ldr',label:'עבודת רופא חדר לידה',kind:'range',station:'חדר לידה — צמוד רופא בכיר',skill:'עבודת רופא חדר לידה'},
- {id:'er',label:'עבודת רופא מיון',kind:'range',station:'חדר קבלה',skill:'עבודת רופא מיון'},
- {id:'ward',label:'עבודת רופא — ביקור מחלקה',kind:'range',station:'יולדות א׳ (HR)',skill:'עבודת רופא חדר לידה'},
- {id:'us',label:'תפעול מכשיר אולטרסאונד',kind:'range',station:'מכון US',skill:'אולטרסאונד / הערכת משקל'},
- {id:'cs',label:'ניתוח קיסרי — עוזר (חזרו 3 פעמים)',kind:'point',station:'חדר ניתוח',skill:'עוזר ראשון בקיסרי'},
- {id:'suture',label:'סדנת תפירה',kind:'point',special:'סדנת תפירה'},
- {id:'cutmid',label:'שיחת חתך — אמצע',kind:'point',special:'שיחת חתך (אמצע) — ד״ר אילוז'},
- {id:'cutend',label:'שיחת חתך — סמוך לסיום',kind:'point',special:'שיחת חתך (סיום) — ד״ר אילוז'},
- {id:'exam',label:'מבחן פרוטוקולים',kind:'point',station:'השלמות / מבחן',skill:'מבחן פרוטוקולים',special:'מבחן פרוטוקולים'},
- {id:'sim',label:'סימולציית מצבי חירום',kind:'point',special:'סימולציית מצבי חירום — צוות חדר לידה'},
- {id:'evening',label:'תורנות ערב שבועית',kind:'weekly'}
-];
-function genBlankPlan(startISO){
-  var days=[],d=parseISO(startISO),n=0,c=0,ids=cohortResidents().map(function(r){return r.id;});
-  while(c<20 && n<40){var dow=d.getDay();if(dow!==5&&dow!==6){days.push({date:iso(d),station:'',skill:'',team:'',academic:(dow===2?'הדרכת מתמחים · 07:00':dow===3?'הרצאות פוריות · 07:15':''),evening:false,special:'',homework:'',residents:ids.slice()});c++;}d=addDays(d,1);n++;}
+/* ---------- program builder (principles → auto-fill) ---------- */
+function defaultPrinciples(){return [
+ {id:'pr_midwife',label:'עבודת מיילדת',kind:'rotation',station:'חדר לידה — צמוד מיילדת',skill:'עבודת מיילדת',days:3},
+ {id:'pr_ldr',label:'עבודת רופא חדר לידה',kind:'rotation',station:'חדר לידה — צמוד רופא בכיר',skill:'עבודת רופא חדר לידה',days:3},
+ {id:'pr_er',label:'עבודת רופא מיון',kind:'rotation',station:'חדר קבלה',skill:'עבודת רופא מיון',days:2},
+ {id:'pr_ward',label:'עבודת רופא — ביקור מחלקה',kind:'rotation',station:'יולדות א׳ (HR)',skill:'עבודת רופא חדר לידה',days:3},
+ {id:'pr_us',label:'תפעול מכשיר אולטרסאונד',kind:'rotation',station:'מכון US',skill:'אולטרסאונד / הערכת משקל',days:3},
+ {id:'pr_cs',label:'ניתוח קיסרי — עוזר',kind:'rotation',station:'חדר ניתוח',skill:'עוזר ראשון בקיסרי',days:2},
+ {id:'pr_suture',label:'סדנת תפירה',kind:'shared',special:'סדנת תפירה'},
+ {id:'pr_cutmid',label:'שיחת חתך — אמצע',kind:'shared',special:'שיחת חתך (אמצע) — ד״ר אילוז'},
+ {id:'pr_cutend',label:'שיחת חתך — סמוך לסיום',kind:'shared',special:'שיחת חתך (סיום) — ד״ר אילוז'},
+ {id:'pr_sim',label:'סימולציית מצבי חירום',kind:'shared',special:'סימולציית מצבי חירום — צוות חדר לידה'},
+ {id:'pr_exam',label:'מבחן פרוטוקולים',kind:'shared',special:'מבחן פרוטוקולים'}
+];}
+function genBlankPlan(startISO,ids){
+  ids=ids||cohortResidents().map(function(r){return r.id;});
+  var days=[],d=parseISO(startISO),n=0,c=0;
+  while(c<20 && n<40){var dow=d.getDay();if(dow!==5&&dow!==6){var day={date:iso(d),academic:(dow===2?'הדרכת מתמחים · 07:00':dow===3?'הרצאות פוריות · 07:15':''),evening:false,special:'',homework:'',residents:ids.slice(),assign:{},eval:{}};ids.forEach(function(id){day.assign[id]={station:'',skill:'',team:''};});days.push(day);c++;}d=addDays(d,1);n++;}
   return days;
 }
-function makeBlank(){if(!confirm('ליצור לוח ריק מתאריך ההתחלה? התוכן הקיים יוחלף בלוח ריק (ימי עבודה בלבד).'))return;DB.calendar=genBlankPlan(DB.cohort.startDate);save();renderAdmin();toast('נוצר לוח ריק');}
+function makeBlank(){if(!confirm('ליצור לוח חדש מתאריך ההתחלה (ימי עבודה א׳–ה׳)? התוכן הקיים יוחלף.'))return;DB.calendar=genBlankPlan(DB.cohort.startDate);save();renderAdmin();toast('נוצר לוח חדש');}
 function dayAt(date){return DB.calendar.find(function(x){return x.date===date;});}
-function resolveDay(v){if(!v)return null;v=String(v).trim();if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v;var n=parseInt(v);if(n>=1&&DB.calendar[n-1])return DB.calendar[n-1].date;return null;}
-function allPrinciples(){return SETUP_ITEMS.concat(DB.principles||[]);}
 function renderSetup(){
-  var h='<div style="font-size:13px;color:var(--muted);margin-bottom:8px">בכל שורה אפשר לציין <b>תאריך</b> (לוח) או <b>מספר יום</b> בתוכנית (1 = יום ההתחלה).</div><div class="cl">';
-  allPrinciples().forEach(function(it){
-    var custom=(it.id.charAt(0)==='p');
-    h+='<div class="cl-row"><div class="cl-h"><span class="cl-n">'+esc(it.label)+'</span><span class="cl-c">'+(it.kind==='range'?'טווח ימים':it.kind==='weekly'?'שבועי':'נקודתי')+(custom?' <button class="ttool" onclick="delPrinciple(\''+it.id+'\')">×</button>':'')+'</span></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px">';
-    if(it.kind==='weekly')h+='<button class="btn btn-sm" onclick="setupWeekly()">שבץ ערב בכל שבוע</button>';
-    else{h+='<input id="su_'+it.id+'" placeholder="תאריך או מס׳ יום (1-20)" style="border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;background:var(--bg);width:180px">';
-      if(it.kind==='range')h+='<input type="number" id="sud_'+it.id+'" value="3" min="1" max="20" title="מספר ימים" style="width:62px;border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;background:var(--bg)">';
-      h+='<button class="btn btn-sm" onclick="setup(\''+it.id+'\')">שבץ</button>';}
+  var h='<div style="font-size:13px;color:var(--muted);margin-bottom:8px">תכנון עקרוני: מה נדרש וכמה ימים — בלי תאריכים. "מלא תבנית אוטומטית" יפרוס את זה על הלוח (מתמחים שונים בעמדות שונות, ברצפים), והמשותף (סדנה/סימולציה/מבחן) ביום אחד לכולם.</div><div class="cl">';
+  (DB.principles||[]).forEach(function(it){
+    h+='<div class="cl-row"><div class="cl-h"><span class="cl-n">'+esc(it.label)+' <span class="cl-c" style="font-weight:600">'+(it.kind==='shared'?'משותף · יום בודד':'רוטציה')+'</span></span>';
+    if(it.kind==='rotation')h+='<span style="display:flex;align-items:center;gap:6px;font-size:13px">כמה ימים: <input type="number" min="1" max="20" value="'+(it.days||1)+'" onchange="setPrincipleDays(\''+it.id+'\',this.value)" style="width:56px;'+FLD+'"> <button class="ttool" onclick="delPrinciple(\''+it.id+'\')">×</button></span>';
+    else h+='<button class="ttool" onclick="delPrinciple(\''+it.id+'\')">×</button>';
     h+='</div></div>';
   });
-  h+='</div><button class="btn btn-sm" style="margin-top:10px" onclick="addPrinciple()">+ הוסף שורה / עקרון</button>';
+  h+='</div><button class="btn btn-sm" style="margin-top:10px" onclick="addPrinciple()">+ הוסף שורה</button>';
   return h;
 }
-function setup(id){var it=null;allPrinciples().forEach(function(x){if(x.id===id)it=x;});if(!it)return;if(isLocked()){toast('התוכנית נעולה — פתח לעריכה');return;}if(!DB.calendar.length){toast('צור קודם לוח');return;}if(it.kind==='range')setupRange(it);else setupPoint(it);}
-function setupPoint(it){var v=resolveDay(val('su_'+it.id));if(!v){toast('בחר תאריך או מס׳ יום תקין');return;}var d=dayAt(v);if(!d){toast('היום אינו בלוח');return;}if(it.station)d.station=it.station;if(it.skill)d.skill=it.skill;if(it.special)d.special=it.special;save();renderAdmin();toast('שובץ: '+it.label);}
-function setupRange(it){var v=resolveDay(val('su_'+it.id));if(!v){toast('בחר תאריך או מס׳ יום תקין');return;}var n=Math.max(1,parseInt(val('sud_'+it.id))||1);var idx=-1;DB.calendar.forEach(function(d,i){if(d.date===v)idx=i;});if(idx<0){toast('היום אינו בלוח');return;}var placed=0;for(var i=idx;i<DB.calendar.length&&placed<n;i++){if(it.station)DB.calendar[i].station=it.station;if(it.skill)DB.calendar[i].skill=it.skill;placed++;}save();renderAdmin();toast('שובצו '+placed+' ימים: '+it.label);}
+function setPrincipleDays(id,v){var p=(DB.principles||[]).find(function(x){return x.id===id;});if(p){p.days=Math.max(1,parseInt(v)||1);save();}}
+function autoFill(){
+  if(isLocked()){toast('התוכנית נעולה');return;}
+  if(!confirm('למלא את הלוח אוטומטית לפי עקרונות התוכנית? שיבוצים קיימים יוחלפו.'))return;
+  DB.calendar=genBlankPlan(DB.cohort.startDate);
+  var days=DB.calendar,ids=cohortResidents().map(function(r){return r.id;});
+  var seq=[];(DB.principles||[]).filter(function(p){return p.kind==='rotation';}).forEach(function(p){for(var i=0;i<(p.days||1);i++)seq.push({station:p.station,skill:p.skill});});
+  var shared=(DB.principles||[]).filter(function(p){return p.kind==='shared';});
+  var sIdx={};shared.forEach(function(ev,k){var pos=Math.min(days.length-1,Math.round((k+1)*days.length/(shared.length+1)));while(sIdx[pos]!==undefined&&pos<days.length-1)pos++;sIdx[pos]=ev;});
+  var rp=0;
+  days.forEach(function(d,j){
+    d.residents=ids.slice();d.assign={};
+    if(sIdx[j]){d.special=sIdx[j].special||sIdx[j].label;ids.forEach(function(id){d.assign[id]={station:'אירוע משותף',skill:'',team:''};});}
+    else{ids.forEach(function(id,i){var off=seq.length?Math.floor(seq.length/Math.max(1,ids.length))*i:0;var s=seq.length?seq[(rp+off)%seq.length]:{station:'',skill:''};d.assign[id]={station:s.station||'',skill:s.skill||'',team:''};});rp++;}
+  });
+  var base=parseISO(days[0].date),seen={};days.forEach(function(d){var dt=parseISO(d.date);var wk=Math.floor((dt-base)/(7*864e5));if(dt.getDay()===3&&!seen[wk]){d.evening=true;seen[wk]=true;}});
+  save();renderAdmin();toast('הלוח מולא לפי עקרונות התוכנית');
+}
 function setupWeekly(){if(isLocked()){toast('התוכנית נעולה');return;}if(!DB.calendar.length){toast('צור קודם לוח');return;}var base=parseISO(DB.calendar[0].date),seen={};DB.calendar.forEach(function(d){var dt=parseISO(d.date);var wk=Math.floor((dt-base)/(7*864e5));if(dt.getDay()===3&&!seen[wk]){d.evening=true;seen[wk]=true;}});save();renderAdmin();toast('שובצה תורנות ערב שבועית');}
-function addPrinciple(){openEdit('שורה / עקרון חדש',fld('e_n','שם הפעילות','')+'<div class="fld"><label>סוג</label><select id="e_k"><option value="point">נקודתי (יום בודד)</option><option value="range">טווח ימים</option></select></div><div class="fld"><label>תחנה (לא חובה)</label><select id="e_st"><option value=""></option>'+STATIONS.map(function(o){return '<option>'+esc(o)+'</option>';}).join('')+'</select></div><div class="fld"><label>מיומנות (לא חובה)</label><select id="e_sk"><option value=""></option>'+SKILLS.map(function(o){return '<option>'+esc(o)+'</option>';}).join('')+'</select></div>'+fld('e_sp','אירוע מיוחד (לא חובה)',''),function(){if(!val('e_n'))return;if(!DB.principles)DB.principles=[];DB.principles.push({id:uid('p'),label:val('e_n'),kind:val('e_k'),station:val('e_st'),skill:val('e_sk'),special:val('e_sp')});save();closeModal('editModal');renderAdmin();});}
+function addPrinciple(){openEdit('שורה / עקרון חדש',fld('e_n','שם הפעילות','')+'<div class="fld"><label>סוג</label><select id="e_k"><option value="rotation">רוטציה (תחנה · מספר ימים)</option><option value="shared">משותף (אירוע ביום בודד)</option></select></div><div class="fld"><label>תחנה (לרוטציה)</label><select id="e_st"><option value=""></option>'+STATIONS.map(function(o){return '<option>'+esc(o)+'</option>';}).join('')+'</select></div><div class="fld"><label>מיומנות (לרוטציה)</label><select id="e_sk"><option value=""></option>'+SKILLS.map(function(o){return '<option>'+esc(o)+'</option>';}).join('')+'</select></div>'+fld('e_d','מספר ימים (לרוטציה)','3')+fld('e_sp','אירוע מיוחד (למשותף)',''),function(){if(!val('e_n'))return;if(!DB.principles)DB.principles=[];DB.principles.push({id:uid('pr'),label:val('e_n'),kind:val('e_k'),station:val('e_st'),skill:val('e_sk'),days:Math.max(1,parseInt(val('e_d'))||1),special:val('e_sp')});save();closeModal('editModal');renderAdmin();});}
 function delPrinciple(id){DB.principles=(DB.principles||[]).filter(function(x){return x.id!==id;});save();renderAdmin();}
-function toggleEval(date){var e=document.getElementById('ev-'+date);if(e)e.style.display=(!e.style.display||e.style.display==='none')?'table-row':'none';}
+function toggleEval(key){var e=document.getElementById('ev-'+key);if(e)e.style.display=(!e.style.display||e.style.display==='none')?'block':'none';}
 function cohortLabelFromStart(){var d=parseISO(DB.cohort.startDate);return HE_MONTHS[d.getMonth()]+' '+d.getFullYear();}
 
 /* ---------- TRAIN (יעדי הכשרה: 2-layer + knowledge) ---------- */
@@ -853,7 +878,7 @@ function renderSources(){
       '<span class="typ '+s.type+'">'+tLabel(s.type)+'</span>'+
       '<span class="nm">'+esc(s.title)+'</span>'+
       '<span class="ltag '+s.level+'">'+lLabel(s.level)+'</span>'+
-      '<span class="master '+(mastered?'on':'')+'" onclick="toggleMastery(\''+s.id+'\');event.stopPropagation()">'+(mastered?'✓ נשלט':'נשלט')+'</span>'+
+      (ST.role==='res'?'<span class="master '+(mastered?'on':'')+'" onclick="toggleMastery(\''+s.id+'\');event.stopPropagation()">'+(mastered?'✓ נשלט':'נשלט')+'</span>':(mastered?'<span class="master on">✓ נשלט</span>':''))+
       (s.file?'<a class="file" href="'+encodeURI(s.file)+'" target="_blank" onclick="event.stopPropagation()"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M14 3v5h5M7 3h8l5 5v13H7z"/></svg> פתח</a>':'<span class="nofile">טרם הוזן קובץ</span>')+
       '<span class="arr"><svg class="icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span></div><div class="acc-b">';
     if(ST.role==='mgr'){
@@ -947,8 +972,8 @@ function renderSettings(){
   document.getElementById('s-settings').innerHTML=html;
 }
 function download(name,content,type){var blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast('הקובץ הורד');}
-function exportCSV(){var rows=[['תאריך','יום','תחנה','מיומנות','משובץ עם','אקדמי','תורן ערב','אירוע מיוחד','שיעורי בית']];myDays().forEach(function(d){var dt=parseISO(d.date);rows.push([d.date,HE_DOW[dt.getDay()],d.station,d.skill,d.team||'',d.academic||'',d.evening?'כן':'',d.special||'',d.homework||'']);});var csv='﻿'+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');download('תוכנית_'+curRes().name.replace('ד״ר ','')+'.csv',csv,'text/csv;charset=utf-8');}
-function exportICS(){var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Orientation OBGYN//HE','CALSCALE:GREGORIAN'];myDays().forEach(function(d){var dn=d.date.replace(/-/g,''),nx=iso(addDays(parseISO(d.date),1)).replace(/-/g,'');var desc=[d.team?'משובץ עם: '+d.team:'',d.academic?'אקדמי: '+d.academic:'',d.special?'מיוחד: '+d.special:'',d.evening?'תורן ערב':'',d.homework?'ש.ב: '+d.homework:''].filter(Boolean).join('\\n');L.push('BEGIN:VEVENT','UID:'+d.date+'-'+ST.rid+'@orientation','DTSTART;VALUE=DATE:'+dn,'DTEND;VALUE=DATE:'+nx,'SUMMARY:'+d.station+' — '+d.skill,'DESCRIPTION:'+desc,'END:VEVENT');});L.push('END:VCALENDAR');download('יומן_'+curRes().name.replace('ד״ר ','')+'.ics',L.join('\r\n'),'text/calendar;charset=utf-8');}
+function exportCSV(){var rows=[['תאריך','יום','תחנה','מיומנות','משובץ עם','אקדמי','תורן ערב','אירוע מיוחד','שיעורי בית']];myDays().forEach(function(d){var dt=parseISO(d.date),s=slot(d,ST.rid);rows.push([d.date,HE_DOW[dt.getDay()],s.station,s.skill,s.team||'',d.academic||'',d.evening?'כן':'',d.special||'',d.homework||'']);});var csv='﻿'+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');download('תוכנית_'+curRes().name.replace('ד״ר ','')+'.csv',csv,'text/csv;charset=utf-8');}
+function exportICS(){var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Orientation OBGYN//HE','CALSCALE:GREGORIAN'];myDays().forEach(function(d){var s=slot(d,ST.rid);var dn=d.date.replace(/-/g,''),nx=iso(addDays(parseISO(d.date),1)).replace(/-/g,'');var desc=[s.team?'משובץ עם: '+s.team:'',d.academic?'אקדמי: '+d.academic:'',d.special?'מיוחד: '+d.special:'',d.evening?'תורן ערב':'',d.homework?'ש.ב: '+d.homework:''].filter(Boolean).join('\\n');L.push('BEGIN:VEVENT','UID:'+d.date+'-'+ST.rid+'@orientation','DTSTART;VALUE=DATE:'+dn,'DTEND;VALUE=DATE:'+nx,'SUMMARY:'+((s.station||'')+' — '+(s.skill||'')),'DESCRIPTION:'+desc,'END:VEVENT');});L.push('END:VCALENDAR');download('יומן_'+curRes().name.replace('ד״ר ','')+'.ics',L.join('\r\n'),'text/calendar;charset=utf-8');}
 function buildDossier(rid){
   var prev=ST.rid;ST.rid=rid;var p=pr(),r=findRes(rid);var L=[];
   L.push('תיק ביצוע — '+r.name);L.push('חודש קליטה: '+DB.cohort.label+' · מנטור: '+(r.mentor||'—'));L.push('הופק: '+fmtHe(new Date()));L.push('');
@@ -988,13 +1013,12 @@ function renderAdmin(){
   if(cohortResidents().length<3)html+='<button class="btn btn-accent btn-sm" style="margin-top:14px" onclick="addResident()">+ פתח תיק מתמחה חדש</button>';
   else html+='<p class="foot">הגעת ל-3 מתמחים (מקסימום).</p>';
   html+='<div class="sec">בניית לוח התוכנית</div>';
-  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><button class="btn btn-sm" onclick="makeBlank()">צור לוח מתאריך ההתחלה</button><button class="btn btn-sm" onclick="regenPlan()">מלא תבנית אוטומטית לפי עקרונות התוכנית</button><button class="btn btn-sm" onclick="assignAll()">שבץ את המתמחים בכל הימים</button><button class="btn btn-sm" onclick="setupWeekly()">שבץ תורנות בכל שבוע</button></div>';
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px"><button class="btn btn-sm" onclick="makeBlank()">צור לוח מתאריך ההתחלה</button><button class="btn btn-sm btn-accent" onclick="autoFill()">מלא תבנית אוטומטית לפי עקרונות התוכנית</button><button class="btn btn-sm" onclick="setupWeekly()">שבץ תורנות בכל שבוע</button></div>';
   html+='<div style="font-size:12px;color:var(--faint);margin-bottom:10px">הלוח מבוסס ימי עבודה (א׳–ה׳), למידה מבוססת אמצע שבוע.</div>';
   html+='<div class="sec">צ\'קליסט ועקרונות התוכנית</div>';
   html+=renderSetup();
   html+='<div class="sec">עריכת לו״ז חודשי</div>';
-  if(!DB.calendar.length)html+='<div class="card" style="color:var(--muted)">הלוח ריק. "צור לוח ריק" או "מלא תבנית אוטומטית" למעלה.</div>';
-  else html+=calTable();
+  html+=renderSchedule();
   html+='<div class="sec">ארכיון תוכניות שנסגרו</div>';
   if(!DB.archive.length)html+='<div class="card" style="color:var(--muted)">אין עדיין תוכניות בארכיון. סגירת תוכנית של מתמחה תשמור כאן את תיק הביצוע שלו.</div>';
   else{html+='<div class="cl">';DB.archive.slice().reverse().forEach(function(a){html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">'+esc(a.name)+'</span><span class="cl-c">'+esc(a.cohortLabel)+' · נסגר '+fmtHe(parseISO(a.closedDate))+'</span></div><div style="font-size:13px;color:var(--muted)">בסגירה: התנסות '+a.stats.count+'% · שליטה בחומר '+a.stats.master+'% · מיומנויות '+a.stats.skill+'%</div><div style="display:flex;gap:8px;margin-top:11px;flex-wrap:wrap"><button class="ttool" onclick="downloadArchive(\''+a.id+'\')">⬇ הורד תיק ביצוע</button><button class="ttool" style="color:var(--danger)" onclick="delArchive(\''+a.id+'\')">מחק מהארכיון</button></div></div>';});html+='</div>';}
@@ -1052,14 +1076,14 @@ function buildEntry(){
   html+='<button class="prog" onclick="enter(\'mgr\',\''+((cohortResidents()[0]||DB.residents[0]||{id:''}).id)+'\')"><span class="av mg"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.5 7.5 0 000-2l1.7-1.3-2-3.4-2 .8a7.5 7.5 0 00-1.7-1L15 4h-4l-.4 2.1a7.5 7.5 0 00-1.7 1l-2-.8-2 3.4L4.6 11a7.5 7.5 0 000 2l-1.7 1.3 2 3.4 2-.8a7.5 7.5 0 001.7 1L11 20h4l.4-2.1a7.5 7.5 0 001.7-1l2 .8 2-3.4z"/></svg></span><span><span class="nm">מנהל תוכנית — ד״ר אילוז רועי</span><br><span class="ro">הרשאות מנהל מלאות</span></span><span class="go"><svg class="icon" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></span></button>';
   document.getElementById('entryList').innerHTML=html;
 }
-function enter(role,rid){ST.role=role;ST.rid=rid;document.getElementById('entry').style.display='none';document.getElementById('app').style.display='block';var lay=document.getElementById('layout'),ctx=document.getElementById('ctx');if(role==='mgr')lay.classList.add('mgr');else lay.classList.remove('mgr');ctx.className='ctx '+(role==='mgr'?'':curRes().color);document.getElementById('ctxName').textContent=role==='mgr'?'מנהל · '+curRes().name:curRes().name;go('home');window.scrollTo(0,0);}
+function enter(role,rid){ST.role=role;ST.rid=rid;document.getElementById('entry').style.display='none';document.getElementById('app').style.display='block';var lay=document.getElementById('layout'),ctx=document.getElementById('ctx');if(role==='mgr')lay.classList.add('mgr');else lay.classList.remove('mgr');ctx.className='ctx '+(role==='mgr'?'':curRes().color);document.getElementById('ctxName').textContent=role==='mgr'?'מנהל תוכנית':curRes().name;go('home');window.scrollTo(0,0);}
 function leave(){document.getElementById('app').style.display='none';document.getElementById('entry').style.display='grid';buildEntry();}
 function go(s){ST.screen=s;document.querySelectorAll('.screen').forEach(function(e){e.classList.remove('show');});var t=document.getElementById('s-'+s);if(t)t.classList.add('show');document.querySelectorAll('.nav a,.mob-nav a').forEach(function(a){a.classList.toggle('active',a.dataset.s===s);});render();window.scrollTo(0,0);}
 function openModal(id){document.getElementById(id).classList.add('show');}
 function closeModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('show');});});
 
-function boot(){load();buildEntry();if(cloudOn()){startCloud().then(function(){buildEntry();}).catch(function(e){console.warn('cloud init failed',e);});}}
+function boot(){load();var vf=document.getElementById('verFoot');if(vf)vf.textContent='הנתונים נשמרים מקומית בדפדפן זה · גרסה '+VERSION;buildEntry();if(cloudOn()){startCloud().then(function(){buildEntry();}).catch(function(e){console.warn('cloud init failed',e);});}}
 boot();
 </script>
 </body>
