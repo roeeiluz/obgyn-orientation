@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>אורינטציה OB/GYN — אפליקציה</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --bg:#FAFBFB; --surface:#FFFFFF; --ink:#1A2A2F; --muted:#6E7E84; --faint:#9AA8AD;
+  --line:#ECEFEF; --line-2:#E2E7E7;
+  --accent:#0E7A72; --accent-d:#0a5a54; --accent-soft:#EAF4F2;
+  --res1:#5566B5; --res1-soft:#ECEEF8; --res2:#B5803A; --res2-soft:#F6EEE1; --res3:#B0588A; --res3-soft:#F7E9F1;
+  --ok:#3E9A78; --ok-soft:#EAF5F0; --warn:#C0902F; --warn-soft:#F8F1E2; --danger:#C0564A;
+  --r:18px; --r-s:12px;
+  --shadow:0 1px 2px rgba(20,50,55,.04), 0 8px 24px rgba(20,50,55,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Assistant',sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;font-weight:400;-webkit-font-smoothing:antialiased}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+svg{display:block}
+a{color:inherit;text-decoration:none}
+.icon{width:20px;height:20px;stroke:currentColor;stroke-width:1.6;fill:none;stroke-linecap:round;stroke-linejoin:round}
+
+.entry{min-height:100vh;display:grid;place-items:center;padding:28px;background:radial-gradient(900px 500px at 50% -15%,#eef6f5,transparent),var(--bg)}
+.entry-inner{width:100%;max-width:600px;text-align:center}
+.brand{display:inline-flex;align-items:center;gap:11px;font-weight:800;font-size:17px;color:var(--accent-d);margin-bottom:30px}
+.brand .m{width:36px;height:36px;border-radius:11px;background:var(--accent);display:grid;place-items:center;color:#fff}
+.entry h1{font-size:27px;font-weight:700;letter-spacing:-.01em}
+.entry .sub{color:var(--muted);margin-top:7px;font-size:15.5px}
+.entry .hint{font-size:13px;color:var(--faint);margin:26px 0 14px}
+.prog-list{display:flex;flex-direction:column;gap:11px;text-align:start}
+.prog{display:flex;align-items:center;gap:15px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-s);padding:17px 19px;transition:.18s;text-align:start;width:100%}
+.prog:hover{border-color:var(--accent);box-shadow:var(--shadow);transform:translateY(-1px)}
+.prog .av{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;font-weight:700;font-size:16px;flex-shrink:0}
+.prog .nm{font-weight:600;font-size:16px}
+.prog .ro{font-size:13px;color:var(--muted)}
+.prog .go{margin-inline-start:auto;color:var(--faint)}
+.av.res1{background:var(--res1-soft);color:var(--res1)} .av.res2{background:var(--res2-soft);color:var(--res2)} .av.res3{background:var(--res3-soft);color:var(--res3)}
+.av.mg{background:var(--accent-soft);color:var(--accent-d)}
+
+.app{display:none}
+.topbar{position:sticky;top:0;z-index:30;background:rgba(250,251,251,.85);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px;padding:13px 26px}
+.topbar .brand{margin:0;font-size:15px}
+.topbar .brand .m{width:30px;height:30px;border-radius:9px}
+.sp{flex:1}
+.ctx{display:flex;align-items:center;gap:9px;font-weight:600;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);padding:6px 13px;border-radius:999px}
+.ctx .d{width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.ctx.res1 .d{background:var(--res1)} .ctx.res2 .d{background:var(--res2)} .ctx.res3 .d{background:var(--res3)}
+.switch{font-size:13.5px;color:var(--muted);font-weight:600;padding:6px 12px;border-radius:9px}
+.switch:hover{background:var(--surface);color:var(--ink)}
+
+.layout{display:flex;max-width:1200px;margin:0 auto}
+.nav{width:240px;flex-shrink:0;padding:22px 16px}
+.nav .grp{font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--faint);text-transform:uppercase;padding:0 12px;margin:18px 0 7px}
+.nav a{display:flex;align-items:center;gap:12px;padding:10px 13px;border-radius:11px;color:var(--muted);font-weight:600;font-size:14.5px;transition:.15s;margin-bottom:2px;cursor:pointer}
+.nav a:hover{background:var(--surface);color:var(--ink)}
+.nav a.active{background:var(--accent);color:#fff}
+.nav a.active .icon{stroke:#fff}
+.main{flex:1;min-width:0;padding:30px 38px 90px}
+.wrap{max-width:880px}
+
+.head{margin-bottom:26px}
+.title{font-size:25px;font-weight:700;letter-spacing:-.01em}
+.subtitle{color:var(--muted);font-size:15px;margin-top:4px}
+
+.screen{display:none}.screen.show{display:block;animation:f .25s ease}
+@keyframes f{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.grid{display:grid;gap:14px}.g2{grid-template-columns:1fr 1fr}.g3{grid-template-columns:repeat(3,1fr)}
+.sec{font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--faint);text-transform:uppercase;margin:30px 0 13px;display:flex;align-items:center;gap:10px}
+.sec .ln{flex:1;height:1px;background:var(--line)}
+.subsec{font-weight:700;font-size:15.5px;margin:24px 0 11px;display:flex;align-items:center;gap:10px;cursor:pointer}
+.subsec .ar{color:var(--faint);font-size:13px}
+.subsec .b{width:5px;height:19px;border-radius:3px;background:var(--accent);display:inline-block}
+.subsec small{font-weight:600;font-size:12.5px;color:var(--faint)}
+
+.goal-list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.goal{display:flex;align-items:center;gap:16px;padding:16px 22px;border-bottom:1px solid var(--line)}
+.goal:last-child{border:none}
+.goal .gi{width:28px;height:28px;flex-shrink:0;color:var(--accent)}
+.goal .gt{font-weight:600;font-size:15px}
+.goal .gd{font-size:13px;color:var(--muted);margin-top:1px}
+.goal .new{font-size:10.5px;font-weight:700;color:var(--accent-d);background:var(--accent-soft);padding:2px 8px;border-radius:999px;margin-inline-start:8px;vertical-align:middle}
+.goal .gs{margin-inline-start:auto;flex-shrink:0}
+
+.stpill{font-size:11.5px;font-weight:700;padding:4px 12px;border-radius:999px;cursor:pointer;white-space:nowrap}
+.stpill.s0{background:#F1F4F4;color:var(--faint)} .stpill.s1{background:var(--warn-soft);color:var(--warn)} .stpill.s2{background:var(--ok-soft);color:var(--ok)}
+
+.today{background:linear-gradient(180deg,#fff,#fcfdfd);border:1px solid var(--line);border-radius:var(--r);padding:22px}
+.today .lbl{font-size:12px;font-weight:700;letter-spacing:.05em;color:var(--accent-d);text-transform:uppercase}
+.today .dt{font-size:20px;font-weight:700;margin:2px 0 16px}
+.today-row{display:flex;align-items:center;gap:13px;padding:11px 0;border-top:1px solid var(--line)}
+.today-row .k{font-size:13px;color:var(--muted);width:96px;flex-shrink:0}
+.today-row .v{font-weight:600}
+.mini{display:flex;gap:14px}
+.stat{flex:1;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-s);padding:15px 17px}
+.stat .n{font-size:26px;font-weight:700;color:var(--accent-d)}
+.stat .l{font-size:12.5px;color:var(--muted);font-weight:600}
+.bar{height:6px;background:var(--line-2);border-radius:999px;overflow:hidden;margin-top:9px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:999px;transition:.4s}
+
+.up-list{margin-top:6px}
+.up{display:flex;align-items:center;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:14px}
+.up .day{font-weight:700;color:var(--accent-d);width:62px;flex-shrink:0}
+.up .tag{font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-d);margin-inline-start:auto}
+
+.cal-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.legend{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:var(--muted)}
+.legend .sw{width:11px;height:11px;border-radius:4px}
+.btn{display:inline-flex;align-items:center;gap:7px;font-weight:600;font-size:13.5px;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.btn:hover{border-color:var(--line-2)}
+.btn-accent{background:var(--accent);color:#fff;border-color:var(--accent)}.btn-accent:hover{background:var(--accent-d)}
+.btn-warn{background:var(--warn-soft);color:var(--warn);border:none}
+.btn-sm{padding:6px 11px;font-size:12.5px}
+.push{margin-inline-start:auto}
+.vtog{display:none;gap:6px}.mgr .vtog.flex{display:inline-flex}
+.vt{padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-weight:600;font-size:13px;cursor:pointer}
+.vt.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.cal{display:grid;grid-template-columns:repeat(5,1fr);gap:9px}
+.dow{text-align:center;font-size:12px;font-weight:700;color:var(--faint);padding-bottom:3px}
+.cell{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:10px;min-height:120px;transition:.15s;position:relative}
+.cell.today{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.cell.dim{opacity:.5}
+.cell .dn{font-weight:700;font-size:13px;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.cell .dn .hh{font-size:10px;font-weight:600;color:var(--accent-d);background:var(--accent-soft);padding:1px 6px;border-radius:6px}
+.rrow{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;min-height:22px}
+.rchip{font-size:10px;font-weight:700;width:22px;height:22px;border-radius:6px;display:inline-grid;place-items:center}
+.rchip.res1{background:var(--res1-soft);color:var(--res1)} .rchip.res2{background:var(--res2-soft);color:var(--res2)} .rchip.res3{background:var(--res3-soft);color:var(--res3)}
+.rtog{font-size:10.5px;font-weight:700;min-width:24px;height:22px;padding:0 6px;border-radius:7px;border:1px dashed var(--line-2);background:transparent;color:var(--faint);cursor:pointer}
+.rtog.on.res1{background:var(--res1);color:#fff;border:1px solid var(--res1)} .rtog.on.res2{background:var(--res2);color:#fff;border:1px solid var(--res2)} .rtog.on.res3{background:var(--res3);color:#fff;border:1px solid var(--res3)}
+.pill{font-size:11.5px;border-radius:7px;padding:3px 8px;margin-bottom:4px;font-weight:600;line-height:1.35;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pill.st{background:#F1F4F4;color:#465257}
+.pill.sk{color:var(--accent-d)}
+.pill.eve{background:#EEF0FA;color:#4A56A8}
+.pill.sp{background:var(--warn-soft);color:var(--warn)}
+.cell.empty{background:transparent;border:1px dashed var(--line-2)}
+
+.ctab-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r-s);background:var(--surface)}
+.ctab{width:100%;border-collapse:collapse;font-size:13px;min-width:880px}
+.ctab th{text-align:start;font-size:11px;font-weight:700;color:var(--faint);text-transform:uppercase;padding:10px 9px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--surface);z-index:1}
+.ctab td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.ctab tr:last-child td{border-bottom:none}
+.ctab tr:hover td{background:#FBFCFC}
+.ctab .dcol{white-space:nowrap;font-weight:700;color:var(--accent-d);font-size:12.5px}
+.ctab .dnum{font-weight:600;color:var(--muted);font-size:11px}
+.ctab select,.ctab input[type=text],.ctab input:not([type]){width:100%;min-width:86px;border:1px solid var(--line-2);border-radius:7px;padding:6px 7px;background:var(--bg);font-size:13px}
+.ctab input[type=checkbox]{width:auto}
+.ctab .acell{display:flex;gap:3px}
+.xrow{color:var(--faint);font-size:18px;line-height:1;cursor:pointer;padding:2px 7px;background:none}.xrow:hover{color:var(--danger)}
+
+.overlay{position:fixed;inset:0;background:rgba(20,40,44,.34);backdrop-filter:blur(2px);z-index:60;display:none;align-items:center;justify-content:center;padding:20px}
+.overlay.show{display:flex}
+.modal{background:var(--surface);border-radius:var(--r);width:100%;max-width:460px;box-shadow:var(--shadow);overflow:hidden;animation:f .2s ease;max-height:92vh;overflow-y:auto}
+.modal h3{font-size:18px;font-weight:700;padding:20px 22px 4px}
+.modal .mp{padding:0 22px 6px;color:var(--muted);font-size:13.5px}
+.mbody{padding:14px 22px}
+.fld{margin-bottom:14px}
+.fld label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:5px}
+.fld input,.fld select,.fld textarea{width:100%;font-size:14.5px;border:1px solid var(--line-2);border-radius:10px;padding:9px 11px;background:var(--bg)}
+.fld textarea{min-height:54px;resize:vertical}
+.mfoot{display:flex;gap:10px;padding:14px 22px 20px;border-top:1px solid var(--line)}
+.mfoot .btn{flex:1;justify-content:center}
+
+.cl{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.cl-row{padding:17px 22px;border-bottom:1px solid var(--line)}
+.cl-row:last-child{border:none}
+.cl-h{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:11px}
+.cl-n{font-weight:600;font-size:15px}
+.cl-c{font-size:13px;color:var(--muted);font-weight:700;white-space:nowrap}
+.boxes{display:flex;gap:7px;flex-wrap:wrap}
+.cb{width:32px;height:32px;border-radius:9px;border:1.6px solid var(--line-2);display:grid;place-items:center;font-weight:700;color:var(--faint);font-size:12px;transition:.12s;cursor:pointer}
+.cb.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.cb:hover{border-color:var(--accent)}
+.cb.lock{cursor:not-allowed;opacity:.6}
+
+.roll{display:flex;align-items:center;gap:14px;padding:15px 22px;border-bottom:1px solid var(--line);cursor:pointer}
+.roll:last-child{border:none}.roll:hover{background:#FBFCFC}
+.roll .rn{font-weight:600;font-size:14.5px;flex:1}
+.roll .rbar{width:130px}
+.roll .rc{font-size:13px;font-weight:700;color:var(--muted);width:46px;text-align:center}
+
+.filters{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.fl{font-size:12.5px;color:var(--muted);font-weight:700}
+.fbtn{padding:7px 13px;border-radius:999px;font-weight:600;font-size:13px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.fbtn.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.acc{border:1px solid var(--line);border-radius:13px;margin-bottom:9px;background:var(--surface);overflow:hidden}
+.acc-h{display:flex;align-items:center;gap:11px;padding:14px 16px;cursor:pointer}
+.acc-h .nm{font-weight:600;flex:1;font-size:14.5px;min-width:0}
+.acc-h .file{font-size:12.5px;color:var(--accent);font-weight:600;display:flex;align-items:center;gap:5px;flex-shrink:0}
+.acc-h .arr{color:var(--faint);transition:.2s}.acc.open .arr{transform:rotate(180deg)}
+.acc-b{display:none;padding:4px 16px 16px}.acc.open .acc-b{display:block}
+.typ{font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;flex-shrink:0}
+.typ.protocol{background:var(--accent-soft);color:var(--accent-d)} .typ.memo{background:#EAEFEF;color:#43575c} .typ.textbook{background:var(--res1-soft);color:var(--res1)} .typ.position{background:var(--res2-soft);color:var(--res2)} .typ.kit{background:var(--res3-soft);color:var(--res3)}
+.ltag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;flex-shrink:0}
+.ltag.full{background:var(--ok-soft);color:var(--ok)} .ltag.know{background:var(--warn-soft);color:var(--warn)} .ltag.read{background:#EEF0FA;color:#4A56A8}
+.nofile{font-size:12px;color:var(--faint);font-weight:600;flex-shrink:0}
+.master{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;color:var(--muted);cursor:pointer;flex-shrink:0;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.master.on{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.pick{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px}
+.lvlb{padding:5px 11px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--muted);font-weight:600;font-size:12px;cursor:pointer}
+.lvlb:hover{border-color:var(--accent)}
+.lvlb.on.full{background:var(--ok-soft);color:var(--ok);border-color:var(--ok)}
+.lvlb.on.know{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.lvlb.on.read{background:#EEF0FA;color:#4A56A8;border-color:#4A56A8}
+.lvlb.on.protocol{background:var(--accent-soft);color:var(--accent-d);border-color:var(--accent)}
+.lvlb.on.memo{background:#EAEFEF;color:#43575c;border-color:#9aa8ad}
+.lvlb.on.textbook{background:var(--res1-soft);color:var(--res1);border-color:var(--res1)}
+.lvlb.on.position{background:var(--res2-soft);color:var(--res2);border-color:var(--res2)}
+.lvlb.on.kit{background:var(--res3-soft);color:var(--res3);border-color:var(--res3)}
+.note-prev{font-size:13px;background:var(--accent-soft);color:var(--accent-d);border-radius:9px;padding:9px 12px;margin-bottom:10px}
+.note-add label{font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px}
+.note-add textarea{width:100%;border:1px solid var(--line-2);border-radius:9px;padding:9px;font-size:14px;min-height:48px;resize:vertical;background:var(--bg)}
+.mtools{display:none;gap:8px;margin-top:11px;flex-wrap:wrap}.mgr .mtools{display:flex}
+.ttool{font-size:12px;font-weight:600;padding:6px 11px;border-radius:8px;background:var(--bg);color:var(--muted);border:1px solid var(--line);cursor:pointer}
+.ttool:hover{color:var(--accent-d);border-color:var(--accent)}
+
+.tip{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:16px 19px;margin-bottom:11px;display:flex;gap:13px;align-items:flex-start}
+.tip .ti{color:var(--accent);flex-shrink:0;margin-top:2px}.tip .tx{flex:1}
+.tip .del{color:var(--faint);cursor:pointer}.tip .del:hover{color:var(--danger)}
+
+.tl{position:relative;padding-inline-start:26px}
+.tl::before{content:"";position:absolute;inset-inline-start:7px;top:6px;bottom:6px;width:2px;background:var(--line-2)}
+.tl-item{position:relative;margin-bottom:14px}
+.tl-item::before{content:"";position:absolute;inset-inline-start:-23px;top:20px;width:12px;height:12px;border-radius:50%;background:var(--surface);border:2px solid var(--accent)}
+.tl-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:15px 18px}
+.tl-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.tl-when{font-size:12px;font-weight:700;color:var(--accent-d);background:var(--accent-soft);padding:3px 10px;border-radius:999px}
+.tl-date{font-size:13px;font-weight:700}
+.tl-task{display:flex;align-items:flex-start;gap:9px;font-size:14px;padding:5px 0}
+.tl-task .tcb{width:18px;height:18px;border:1.6px solid var(--line-2);border-radius:6px;flex-shrink:0;margin-top:2px;display:grid;place-items:center;font-size:11px;color:#fff;cursor:pointer}
+.tl-task .tcb.on{background:var(--accent);border-color:var(--accent)}
+
+.note-day{display:flex;gap:14px;padding:13px 0;border-bottom:1px solid var(--line)}
+.note-day:last-child{border:none}
+.note-day .d{font-weight:700;color:var(--accent-d);width:66px;flex-shrink:0}
+.note-day .t{font-size:14px;flex:1}
+
+.mgr-only{display:none}.mgr .mgr-only{display:block}
+.mgr-only.flex{display:none}.mgr .mgr-only.flex{display:flex}
+.res-only{display:block}.mgr .res-only{display:none}
+.foot{text-align:center;color:var(--faint);font-size:12px;padding:26px}
+.res-switch{display:none;gap:7px;margin-bottom:18px}.mgr .res-switch{display:flex;flex-wrap:wrap}
+.rs{padding:7px 14px;border-radius:999px;font-weight:600;font-size:13.5px;border:1px solid var(--line);background:var(--surface);color:var(--muted);cursor:pointer}
+.rs.on{border-color:var(--accent);color:var(--accent-d);background:var(--accent-soft)}
+.badge{font-size:11.5px;font-weight:700;padding:3px 10px;border-radius:999px}
+.badge.open{background:var(--ok-soft);color:var(--ok)}.badge.locked{background:var(--warn-soft);color:var(--warn)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:13.5px;font-weight:600;padding:11px 20px;border-radius:999px;opacity:0;transition:.25s;z-index:90;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+.mob-nav{display:none}
+@media(max-width:840px){
+  .layout{display:block}.nav{display:none}.main{padding:20px 16px 92px}.wrap{max-width:none}
+  .g2,.g3{grid-template-columns:1fr}.mini{flex-direction:column}
+  .cal{grid-template-columns:1fr;gap:7px}.dow{display:none}.cell{min-height:auto}
+  .cell .dn{font-size:14px}.topbar{padding:11px 16px}
+  .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);z-index:40;padding:7px 4px;justify-content:space-around}
+  .mob-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted);font-weight:600;padding:4px;cursor:pointer}
+  .mob-nav a.active{color:var(--accent)}
+  .title{font-size:21px}
+}
+</style>
+</head>
+<body>
+
+<div class="entry" id="entry">
+  <div class="entry-inner">
+    <div class="brand"><span class="m"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></span> אורינטציה · נשים ומיילדות</div>
+    <h1>בחירת כניסה</h1>
+    <p class="sub">חודש קליטה למתמחה — מערכת ניהול ומעקב</p>
+    <div class="hint">המערכת שקופה ומבוססת אמון. בחר/י את הכניסה שלך.</div>
+    <div class="prog-list" id="entryList"></div>
+    <p class="foot" style="padding-top:18px">הנתונים נשמרים מקומית בדפדפן זה · גרסה 2.0</p>
+  </div>
+</div>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <span class="brand"><span class="m"><svg class="icon" viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg></span> אורינטציה OB/GYN</span>
+    <span class="sp"></span>
+    <span class="ctx" id="ctx"><span class="d"></span><span id="ctxName"></span></span>
+    <button class="switch" onclick="leave()">החלף כניסה</button>
+  </div>
+  <div class="layout" id="layout">
+    <nav class="nav">
+      <a data-s="home" onclick="go('home')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg> בית</a>
+      <a data-s="cal" onclick="go('cal')"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg> תצוגת לוח חודשי</a>
+      <div class="grp">המתמחה</div>
+      <a data-s="train" onclick="go('train')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2l2.5 6.5L21 9l-5 4 1.5 7L12 16l-5.5 4L8 13 3 9l6.5-.5z"/></svg> יעדי הכשרה</a>
+      <a data-s="sources" onclick="go('sources')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2zM18 17H6"/></svg> למידה עיונית</a>
+      <a data-s="goals" onclick="go('goals')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3L20 5M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg> הסמכה לתורן רביעי</a>
+      <a data-s="tips" onclick="go('tips')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 00-4-10z"/></svg> טיפים קליניים</a>
+      <a data-s="progress" onclick="go('progress')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l3-3 3 3 5-6"/></svg> התקדמות והערות</a>
+      <a data-s="settings" onclick="go('settings')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.5 7.5 0 000-2l1.7-1.3-2-3.4-2 .8a7.5 7.5 0 00-1.7-1L15 4h-4l-.4 2.1a7.5 7.5 0 00-1.7 1l-2-.8-2 3.4L4.6 11a7.5 7.5 0 000 2l-1.7 1.3 2 3.4 2-.8a7.5 7.5 0 001.7 1L11 20h4l.4-2.1a7.5 7.5 0 001.7-1l2 .8 2-3.4z"/></svg> הגדרות וייצוא</a>
+      <div class="grp mgr-only">מנהל תוכנית</div>
+      <a data-s="onboard" class="mgr-only" onclick="go('onboard')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg> צ'קליסט קליטה</a>
+      <a data-s="admin" class="mgr-only" onclick="go('admin')"><svg class="icon" viewBox="0 0 24 24"><path d="M16 11a4 4 0 10-8 0M3 20a7 7 0 0118 0"/></svg> ניהול תוכנית</a>
+    </nav>
+    <main class="main"><div class="wrap">
+      <section class="screen" id="s-home"></section>
+      <section class="screen" id="s-cal"></section>
+      <section class="screen" id="s-train"></section>
+      <section class="screen" id="s-sources"></section>
+      <section class="screen" id="s-goals"></section>
+      <section class="screen" id="s-tips"></section>
+      <section class="screen" id="s-progress"></section>
+      <section class="screen" id="s-settings"></section>
+      <section class="screen" id="s-onboard"></section>
+      <section class="screen" id="s-admin"></section>
+    </div></main>
+  </div>
+  <nav class="mob-nav">
+    <a data-s="home" onclick="go('home')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>בית</a>
+    <a data-s="cal" onclick="go('cal')"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>לוח</a>
+    <a data-s="train" onclick="go('train')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2l2.5 6.5L21 9l-5 4 1.5 7L12 16l-5.5 4L8 13 3 9z"/></svg>הכשרה</a>
+    <a data-s="sources" onclick="go('sources')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2z"/></svg>למידה</a>
+    <a data-s="progress" onclick="go('progress')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l3-3 3 3 5-6"/></svg>התקדמות</a>
+  </nav>
+</div>
+
+<div class="overlay" id="editModal">
+  <div class="modal">
+    <h3 id="emTitle">עריכה</h3>
+    <p class="mp" id="emSub"></p>
+    <div class="mbody" id="emBody"></div>
+    <div class="mfoot"><button class="btn" onclick="closeModal('editModal')">ביטול</button><button class="btn btn-accent" id="emSave" style="flex:1">שמור</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   אורינטציה OB/GYN — אפליקציה (v2)
+   מודל 2 שכבות: יעדי הכשרה (מיומנויות + התנסות + שליטה בחומר) → הסמכה.
+   ספריית מקורות: סוג חומר (פרוטוקול/נוהל/פק"ל/ספר/ערכה/נייר עמדה) ✕ רמת שליטה.
+   לוח חודשי משותף עם שיבוץ 1–3 מתמחים בלחיצה. שכבת ענן אופציונלית (Supabase).
+   ============================================================ */
+var CONFIG={ SUPABASE_URL:'', SUPABASE_KEY:'' };  /* למילוי בעת מעבר לענן — ראה README_פריסה */
+var KEY='orientation_app_v2';
+var HE_DOW=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+var HE_MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+var STATIONS=['אדמיניסטרציה ובטיחות','חדר לידה — צמוד מיילדת','חדר לידה — צמוד רופא בכיר','חדר ניתוח','מכון US','יולדות א׳ (HR)','יולדות ב׳','חדר קבלה','השלמות / מבחן'];
+var SKILLS=['אוריינטציה וקליטה','עבודת מיילדת','עבודת רופא חדר לידה','עבודת רופא מיון','אולטרסאונד / הערכת משקל','תפירה','צפייה בניתוח קיסרי','עוזר ראשון בקיסרי','מבחן פרוטוקולים'];
+var TYPES=[['protocol','פרוטוקול'],['memo','נוהל / פק״ל'],['position','נייר עמדה'],['textbook','ספר לימוד'],['kit','ערכת הדרכה']];
+var LEVELS=[['full','שליטה מלאה'],['know','רמת ידיעה'],['read','לקריאה']];
+function tLabel(t){for(var i=0;i<TYPES.length;i++)if(TYPES[i][0]===t)return TYPES[i][1];return t;}
+function lLabel(l){for(var i=0;i<LEVELS.length;i++)if(LEVELS[i][0]===l)return LEVELS[i][1];return l;}
+
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function parseISO(s){var p=String(s).split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+function fmtHe(d){return d.getDate()+' ב'+HE_MONTHS[d.getMonth()]+' '+d.getFullYear();}
+function fmtDMY(d){return String(d.getDate()).padStart(2,'0')+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getFullYear()).slice(-2);}
+function addDays(d,n){var x=new Date(d);x.setDate(x.getDate()+n);return x;}
+
+function genPlan(startISO){
+  var phases=[
+    {n:2,st:'אדמיניסטרציה ובטיחות',sk:'אוריינטציה וקליטה',tm:'מזכירת מחלקה',hw:'נוהל קליטת מתמחה + לומדות חובה'},
+    {n:3,st:'חדר לידה — צמוד מיילדת',sk:'עבודת מיילדת',tm:'רונית (מיילדת)',hw:'קווים מנחים בחדר לידה 2023'},
+    {n:3,st:'חדר לידה — צמוד רופא בכיר',sk:'תפירה',tm:'ד״ר כץ',hw:'ערכה 3 — תפירות וקשירות + OASIS'},
+    {n:2,st:'חדר ניתוח',sk:'צפייה בניתוח קיסרי',tm:'ד״ר לוי',hw:'ערכה 2 — כלים כירורגיים'},
+    {n:3,st:'מכון US',sk:'אולטרסאונד / הערכת משקל',tm:'טכנאית US',hw:'GABBE Ch.9 — Obstetric Ultrasound'},
+    {n:2,st:'יולדות ב׳',sk:'עבודת רופא חדר לידה',tm:'ד״ר בר',hw:'פק״ל יולדות ב + PPH 2020'},
+    {n:3,st:'יולדות א׳ (HR)',sk:'עבודת רופא חדר לידה',tm:'ד״ר בר',hw:'פק״ל יולדות א + יל״ד הריוני 2020'},
+    {n:1,st:'חדר קבלה',sk:'עבודת רופא מיון',tm:'ד״ר נסים',hw:'הערכת משקל במיון 2020'},
+    {n:1,st:'השלמות / מבחן',sk:'מבחן פרוטוקולים',tm:'ד״ר אילוז',hw:'חזרה לקראת מבחן הפרוטוקולים'}
+  ];
+  var seq=[];phases.forEach(function(p){for(var i=0;i<p.n;i++)seq.push(p);});
+  var days=[],d=parseISO(startISO),wi=0,workIdx=0,evWeek=-1;
+  while(workIdx<seq.length && wi<40){
+    var dow=d.getDay();
+    if(dow!==5 && dow!==6){
+      var p=seq[workIdx];
+      var academic= dow===2?'הדרכת מתמחים · 07:00' : dow===3?'הרצאות פוריות · 07:15' : '';
+      var week=Math.floor(workIdx/5),evening=false;
+      if(dow===3 && week!==evWeek){evening=true;evWeek=week;}
+      var special='';
+      if(workIdx===14)special='שיחת חתך — ד״ר אילוז';
+      if(workIdx===17)special='סימולציית מצבי חירום — ד״ר אילוז + צוות חדר לידה';
+      days.push({date:iso(d),station:p.st,skill:p.sk,team:p.tm,academic:academic,evening:evening,special:special,homework:p.hw,residents:[]});
+      workIdx++;
+    }
+    d=addDays(d,1);wi++;
+  }
+  return days;
+}
+
+function srcSeed(){
+  var P='פרוטוקולים מיילדות/', G='textbook gabbe/', H='חומרי הדרכה ונהלים/';
+  var rows=[];var id=1;
+  function add(title,file,type,level){rows.push({id:'s'+(id++),title:title,file:file,type:type,level:level,mgrNote:''});}
+  // פרוטוקולים — שליטה מלאה
+  add('ניהול דימום מוגבר לאחר לידה (PPH) — 2020',P+'PPH_2020.pdf','protocol','full');
+  add('תיקון קרעים פריניאליים — OASIS 2015',P+'OASIS_2015.pdf','protocol','full');
+  add('מניעת קרעים פריניאליים — 2018',P+'LABOR_TEARS_PREVENTION_2018.pdf','protocol','full');
+  add('לידת עכוז — 2020',P+'BREECH_2020.pdf','protocol','full');
+  add('מתן סטרואידים טרום-לידתי — 2019',P+'CELESTON_2019.pdf','protocol','full');
+  add('יתר לחץ דם כרוני — 2016',P+'CHRONIC_HTN_2016.pdf','protocol','full');
+  add('היפוך חיצוני — 2021',P+'External Cephalic Version 2021.docx','protocol','full');
+  add('GBS — 2014',P+'GBS_2014.pdf','protocol','full');
+  add('סוכרת בהריון — 2017',P+'GDM_2017.pdf','protocol','full');
+  add('יתר ל״ד הריוני ופרה-אקלמפסיה — 2020',P+'GHTN_PET_2020.pdf','protocol','full');
+  add('ניהול הריון ולידה בנשאיות HIV — 2020',P+'HIV_2020.pdf','protocol','full');
+  add('הרפס ואגינלי בהריון — 2020',P+'HSV_2020.pdf','protocol','full');
+  add('הפעלת לידה — 2018',P+'INDUCTION_2018.pdf','protocol','full');
+  add('מות עובר תוך-רחמי (IUFD) — 2018',P+'IUFD_2018.pdf','protocol','full');
+  add('מקרוזומיה וכליאת כתפיים — 2019',P+'LGA_DYSTOCIA_2019.pdf','protocol','full');
+  add('לידות בית — 2015',P+'OUT OF HOSPITAL BIRTH_2015.pdf','protocol','full');
+  add('העברת וקליטת יולדת — 2017',P+'PATIENT TRANSFER_2017.pdf','protocol','full');
+  add('הריון מעבר שבוע 40 — 2014',P+'PROLONGED PREGNANCY_2014.pdf','protocol','full');
+  add('ירידת מים מוקדמת (PROM) — 2020',P+'PROM_2020.pdf','protocol','full');
+  add('ניסיון לעצירת לידה וטוקוליזה — 2014',P+'PTB_2014.pdf','protocol','full');
+  add('לידה בגבול החיות — 2014',P+'THRESHOLD_VIABILITY_2014.pdf','protocol','full');
+  add('הריון מרובה עוברים — 2015',P+'TWINS_2015.pdf','protocol','full');
+  add('עימדון מרה תוך-כבדי בהריון — 2021',P+'כולסטזיס 2021.docx','protocol','full');
+  add('אצירת שתן לאחר לידה — 2022',P+'נוהל אצירת שתן לאחר לידה _2022.pdf','protocol','full');
+  add('קווים מנחים בחדר לידה — 2023',P+'קווים מנחים בחדר לידה 2023.pdf','protocol','full');
+  add('עיקור חצוצרות — 2018',P+'SURGICAL_STERILIZATION_2018.pdf','protocol','full');
+  add('הפחתה בתנועות עובר — 2015',P+'הפחתה בתנועות עובר 2015.pdf','protocol','full');
+  // פרוטוקולים — רמת ידיעה
+  add('לידה פיזיולוגית — 2017',P+'נוהל לידה פיזיולוגית 27.8.17 .pdf','protocol','know');
+  add('אנטיביוטיקה מונעת בחיתוך דופן — 2014',P+'SURGICAL PROPHYLAXIS CS_2014.pdf','protocol','know');
+  add('לידה מכשירנית (Vacuum) — 2014',P+'VACUUM_2014.pdf','protocol','know');
+  add('שימוש סונוגרפי במהלך לידה — 2023',P+'הערכה סונוגרפית בחדר לידה 2023.pdf','protocol','know');
+  add('טיפול בכאב במהלך לידה — 2017',P+'INTRAPARTUM_PAIN_2017.pdf','protocol','know');
+  add('טיפול בכאב לאחר לידה — 2017',P+'POSTPARTUM_PAIN_2017.pdf','protocol','know');
+  add('טיפול אנטיקואגולנטי בהריון — 2017',P+'ANTICOAGULATION_2017.pdf','protocol','know');
+  // נהלים / פק"ל מחלקה
+  add('פק״ל יולדות א׳',H+'פקל יולדות א.docx','memo','full');
+  add('פק״ל יולדות ב׳',H+'פקל יולדות ב.pdf','memo','full');
+  add('פנקס אם-עובר — 2023',H+'פנקס אם עובר 2023.pdf','memo','know');
+  add('מסירת בשורה מרה — תחום מיילדותי (2019)',H+'נוהל בשורה מרה אגף מיילדות.pdf','memo','full');
+  add('הערכת משקל במיון ובמחלקות יולדות (2020)',H+'הערכת משקל לעוברים במיון יולדות ובמחלקות האשפוז.pdf','memo','full');
+  add('הפעלת ניתוחים קיסריים דחופים/בהולים (2015)',H+'נוהל הפעלת ניתוחים קיסריים דחופים בהולים.pdf','memo','full');
+  add('תיעוד הפעלת לידה (2014)',H+'תיעוד הפעלת לידה.pdf','memo','full');
+  add('הפעלת לידה — נספח ציטוטק',H+'נספח לנוהל הפעלת לידה - ציטוטק.pdf','memo','full');
+  add('קווים מנחים לביצוע ניתוחים קיסריים (2020)',H+'מזכר קווים מנחים בביצוע ניתוח קיסרי.pdf','memo','know');
+  add('בדיקת רופא לאחר אפיזיוטומיה (2016)',H+'נוהל בדיקה לאחר אפיזיוטומיה.pdf','memo','know');
+  add('זימון כונן כירורגי לחדר לידה',H+'הנחיות לזימון כונן כירורגי לחדר לידה.pdf','memo','know');
+  add('מלווים / דולה בחדר לידה',H+'נוהל מלווים דולה בחדר לידה.pdf','memo','know');
+  add('אפס הפרדה — אם ויילוד',H+'אפס הפרדה.pdf','memo','know');
+  add('רישום פונדקאית',H+'רישום פונדקאית.pdf','memo','know');
+  // ערכות הדרכה
+  add('ערכה 2 — כלים כירורגיים',H+'ערכה 2 - כלים כירורגיים.pdf','kit','full');
+  add('ערכה 3 — תפירות וקשירות',H+'ערכה 3- תפירות וקשירות.pdf','kit','full');
+  // ניירות עמדה (חברה ישראלית) — מהתיקייה "ניירות עמדה לאורינטציה" — להעשרת הידע
+  var V='ניירות עמדה לאורינטציה/';
+  add('נייר עמדה 1 — לידה נרתיקית לאחר ניתוח קיסרי (VBAC)',V+'001_לידה לדנית לאחר ניתוח קיסרי קודם.pdf','position','know');
+  add('נייר עמדה 3 — ניהול היריון שלאחר המועד',V+'003_ניהול היריון שלאחר המועד.pdf','position','know');
+  add('נייר עמדה 4 — יילוד עובר החשוד כמקרוזומי',V+'004_יילוד עובר החשוד כמקרוזומי.pdf','position','know');
+  add('נייר עמדה 6 — ניהול ומעקב הריון בסיכון נמוך',V+'006_ניהול מעקב הריון בעל סיכון נמוך.pdf','position','know');
+  add('נייר עמדה 10 — האטה בגדילה תוך-רחמית (FGR)',V+'010_ניהול הריון עם עובר החשוד בהאטה בגדילה תוך רחמית FGR.pdf','position','know');
+  add('נייר עמדה 16 — סוכרת הריונית',V+'016_סוכרת הריונית.pdf','position','know');
+  add('נייר עמדה 17 — סוכרת טרום-הריונית',V+'017_סוכרת טרום הריונית.pdf','position','know');
+  add('נייר עמדה 18 — יתר לחץ דם בהריון',V+'018_יתר לחץ דם בהריון.pdf','position','know');
+  add('נייר עמדה 27 — ניהול לידות בגבול החיות',V+'027_קווים מנחים לגבי ניהול לידות בגבול החיות.pdf','position','know');
+  add('נייר עמדה 37 — ריבוי/מיעוט מי שפיר',V+'037_ניהול ומעקב היריון בנוכחות ריבוי או מיעוט מי שפיר.pdf','position','know');
+  add('נייר עמדה 38 — בדיקות דימות בהריון',V+'038_בדיקת דימות בהריון.pdf','position','know');
+  // ספר לימוד GABBE
+  add('GABBE Ch.9 — Obstetric Ultrasound (הערכת משקל/צוואר/תיארוך)',G+'chapter 9 obstetric ultrasound Dating, Imaging, and Growth.pdf','textbook','read');
+  add('GABBE Ch.27 — Antepartum Fetal Evaluation',G+'chapter 27 Antepartum Fetal Evaluation.pdf','textbook','read');
+  add('GABBE Ch.13 — Normal Labor and Delivery',G+'chapter 13 Normal Labor and Delivery.pdf','textbook','read');
+  add('GABBE Ch.14 — Induction of Labor',G+'chapter 14 Induction of Labor.pdf','textbook','read');
+  add('GABBE Ch.17 — Intrapartum Fetal Evaluation',G+'chapter 17 Intrapartum Fetal Evaluation.pdf','textbook','read');
+  rows[0].mgrNote='דגש על סדר הפעולות וזמני מתן תרופות החירום.';
+  return rows;
+}
+
+function defaults(){
+  var data={
+    cohort:{label:'מאי 2026',monthLead:'ד״ר שטרן',startDate:'2026-05-03',locked:false},
+    residents:[
+      {id:'r1',name:'ד״ר נועה לוי',color:'res1',mentor:'ד״ר לוברמן',status:'active',startDate:'2026-05-03'},
+      {id:'r2',name:'ד״ר זינאת עוואד',color:'res2',mentor:'ד״ר מטאנס',status:'active',startDate:'2026-05-03'}
+    ],
+    skills:[
+      {id:'k_suture',name:'תפירה וקשירה',desc:'תפירת קרע נרתיקי + עזרה בקיסרי',isNew:true},
+      {id:'k_first',name:'עוזר ראשון בניתוח קיסרי',desc:'עזרה פעילה בניתוח והיכרות עם שלביו',isNew:true},
+      {id:'k_tools',name:'כלי עזר חדר לידה',desc:'IUD, אלקטרודה, חמצן, מיקום ציוד',isNew:true},
+      {id:'k_meds',name:'תרופות חדר לידה',desc:'מיקום תרופות + הכנת תרופות חירום (PPH)',isNew:true},
+      {id:'k_monitor',name:'פיענוח מוניטור עוברי',desc:'קריאה ופירוש ניטור במהלך לידה',isNew:false},
+      {id:'k_weight',name:'הערכת משקל סונוגרפית',desc:'קלינית וסונוגרפית — HC/AC/BPD/FL',isNew:false},
+      {id:'k_exam',name:'בדיקה גופנית וגניקולוגית',desc:'בדיקה מלאה של אישה הרה',isNew:false},
+      {id:'k_anam',name:'נטילת אנמנזה והצגת מטופלת',desc:'אנמנזה מלאה והצגה כמקובל',isNew:false}
+    ],
+    counts:[
+      {id:'c_birth_obs',name:'צפייה בלידות',target:3},
+      {id:'c_birth_recv',name:'קבלת לידות',target:3},
+      {id:'c_adm',name:'הצגת קבלות לבכיר',target:5},
+      {id:'c_dis',name:'הצגת שחרורים לבכיר',target:5},
+      {id:'c_weight',name:'הערכות משקל (מול משקל בלידה)',target:10},
+      {id:'c_suture_obs',name:'תפירות — צפייה',target:5},
+      {id:'c_suture_do',name:'תפירות — ביצוע (בהשגחה)',target:5},
+      {id:'c_cs',name:'ניתוחים קיסריים — צפייה/השתתפות',target:5},
+      {id:'c_bpp',name:'פרופיל ביופיזי (ביצוע בהשגחה)',target:5},
+      {id:'c_first_assist',name:'עוזר ראשון בקיסרי',target:1}
+    ],
+    certGoals:[
+      {id:'cg_births',code:'births',name:'צפייה ב-3 לידות + קבלת 3 לידות'},
+      {id:'cg_suture',code:'suture',name:'הסמכה לתפירת אפיזיוטומיה/קרע דרגה 1–2'},
+      {id:'cg_admdis',code:'adm_dis',name:'הצגת 5 קבלות + 5 שחרורים לבכיר'},
+      {id:'cg_gabbe',code:'gabbe',name:'קריאת פרקי GABBE הנדרשים'},
+      {id:'cg_weight',code:'weight',name:'10 הערכות משקל מול משקל בלידה',isNew:true},
+      {id:'cg_cs',code:'cs_obs',name:'3 צפיות בניתוח קיסרי (סקרבינג + רחצת מטופלת)',isNew:true},
+      {id:'cg_fa',code:'first_assist',name:'עוזר ראשון בניתוח קיסרי (≥1)',isNew:true},
+      {id:'cg_exam',code:'exam',name:'מבחן פרוטוקולים מחלקתי (ציון ≥70)',isNew:true,manual:true},
+      {id:'cg_signoff',code:'signoff',name:'הצהרת "בטוח לשמש תורן רביעי" + אישור מנהל ח״ל ומנהל החטיבה',manual:true}
+    ],
+    sources:srcSeed(),
+    tips:[
+      {id:'t1',text:'<b>חדר לידה.</b> לפני כל משמרת — ודא מיקום ערכת PPH ותרופות החירום, החמצן והאלקטרודה.'},
+      {id:'t2',text:'<b>תפירה.</b> זהה דרגת קרע לפני התחלה. החזקת מחט נכונה חוסכת זמן ורקמה.'},
+      {id:'t3',text:'<b>הצגת מטופלת.</b> אנמנזה ממוקדת + ממצאים רלוונטיים בלבד, כמקובל בישיבת בוקר.'}
+    ],
+    aids:[
+      {id:'a1',name:'סרטון הדגמה — שיטות תפירה',url:'https://www.youtube.com/watch?v=-ZWUgKiBxfk'},
+      {id:'a2',name:'סרטון הדגמה — שיטות קשירה',url:'https://www.youtube.com/watch?v=qKyL7IUpMak'},
+      {id:'a3',name:'סרטון הסבר — ניתוח קיסרי',url:'https://www.youtube.com/watch?v=nzGvLtp9UEw'},
+      {id:'a4',name:'כליאת כתפיים — תרגול PROMPT (Limbs & Things)',url:'https://youtu.be/1HeXmlf_sp4'},
+      {id:'a5',name:'ניתוח קיסרי — וידאו הדגמה בסיסי (Vimeo)',url:'https://vimeo.com/43643674'},
+      {id:'a6',name:'ניתוח קיסרי — טכניקה כירורגית (HD)',url:'https://www.youtube.com/watch?v=2MWLMLBr5wc'},
+      {id:'a7',name:'קשר כירורגי דו-ידני לסגירת פצע (J&J)',url:'https://youtu.be/EUEh_pf3Ipc'},
+      {id:'a8',name:'קשירת קשרים כירורגיים (Morosky)',url:'https://youtu.be/Q0iTD9cnwQE'}
+    ],
+    lessons:['בקשה חוזרת ליותר זמן במכון US.','תרגול תפירה מודרך מוקדם יותר בחודש.'],
+    onboardTasks:[
+      {when:'~3 חודשים לפני',off:-90,tasks:['הגשה למשאבי אנוש (קש״ב) — פתיחת תהליך הקבלה','קביעת ועדת קבלה / קבלה בין-ועדות']},
+      {when:'חודשיים לפני',off:-60,tasks:['הגשת מועמד — שם ופרטים','מסמך קבלת פנים + חומר לימוד','התאמת מנטור אישי (ד״ר לוברמן)','ת״ש: ארונית, מדבקת שם, הזמנת ספר GABBE','"רופא בטוח" מול חברת הפנסיה']},
+      {when:'שבועיים לפני',off:-14,tasks:['הרכבת לו״ז חודשי פרטני עם שמות מיילדות/רופאים + אישור מנהל התוכנית','פתיחת משתמש ב-Time Table (מירי)']},
+      {when:'יום ההתחלה',off:0,tasks:['שיחה עם סגן מנהל ומנטור','מתן תוכנית חודשית ספציפית + נוהל קליטה','צירוף לקבוצות ווטסאפ','אוריינטציה פיזית + כרטיס/חותמת','הרשאות פרומתאוס (רויטל קוזין)']},
+      {when:'לאחר שבוע',off:7,tasks:['פגישה עם מנטור ומנהל התוכנית','הרכבת תוכנית התמחות פרטנית למועצה המדעית','הזנה לאקסל התוכנית + קוד התנהגות']},
+      {when:'סיום החודש',off:30,tasks:['מבחן פרוטוקולים (ציון מעבר 70)','הצהרת תורן רביעי + אישורים','שיחת משוב לפני תורן 4','סגירת תוכנית ושמירה לארכיון']}
+    ],
+    calendar:[],
+    archive:[],
+    perResident:{}
+  };
+  data.calendar=genPlan(data.cohort.startDate);
+  var allIds=data.residents.map(function(r){return r.id;});
+  data.calendar.forEach(function(d){d.residents=allIds.slice();});
+  data.residents.forEach(function(r){
+    data.perResident[r.id]={skillStatus:{},countProgress:{},srcMastery:{},certManual:{},examScore:'',dailyNotes:[],feedback:{submitted:false,text:''},onboardDone:{},sourceNotes:{}};
+  });
+  // demo progress for r1
+  var p=data.perResident.r1;
+  p.skillStatus={k_suture:1,k_weight:1,k_monitor:1,k_anam:2,k_exam:2};
+  p.countProgress={c_birth_obs:3,c_birth_recv:3,c_adm:3,c_weight:6,c_suture_obs:5,c_suture_do:3,c_cs:2};
+  data.sources.filter(function(s){return s.type==='textbook';}).slice(0,3).forEach(function(s){p.srcMastery[s.id]=true;});
+  data.sources.filter(function(s){return s.type==='protocol'&&s.level==='full';}).slice(0,10).forEach(function(s){p.srcMastery[s.id]=true;});
+  p.dailyNotes=[
+    {date:'2026-05-13',text:'תפירת קרע ראשונה בהשגחה — הרגשתי בטוחה יותר עם החזקת המחט.'},
+    {date:'2026-05-12',text:'מכון US — הערכות משקל עדיין מאתגרות בחתך AC.'},
+    {date:'2026-05-11',text:'חדר קבלה עמוס; תרגלתי הצגת מטופלת לבכיר.'}
+  ];
+  return data;
+}
+
+/* ---------- store (local-first + optional cloud) ---------- */
+var DB=null, SB=null, ROW='shared', pushTimer=null, applyingRemote=false;
+function cloudOn(){return !!(CONFIG.SUPABASE_URL && CONFIG.SUPABASE_KEY && window.supabase);}
+function loadLocal(){try{var raw=localStorage.getItem(KEY);if(raw){DB=JSON.parse(raw);return true;}}catch(e){}return false;}
+function load(){ if(!loadLocal()){DB=defaults();saveLocal();} migrate(); }
+function saveLocal(){try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+function save(){ saveLocal(); if(cloudOn() && !applyingRemote){clearTimeout(pushTimer);pushTimer=setTimeout(pushCloud,600);} }
+function migrate(){
+  if(!DB)return;
+  if(!DB.cohort)DB.cohort={label:'מאי 2026',monthLead:'ד״ר שטרן',startDate:'2026-05-03',locked:false};
+  if(!DB.archive)DB.archive=[];
+  if(!DB.calendar||!DB.calendar.length){DB.calendar=genPlan(DB.cohort.startDate);var ids=DB.residents.map(function(r){return r.id;});DB.calendar.forEach(function(d){d.residents=ids.slice();});}
+  DB.calendar.forEach(function(d){if(!d.residents)d.residents=DB.residents.map(function(r){return r.id;});});
+  // merge in newly-seeded sources (e.g. position papers) by title, without wiping data
+  if(!DB.sources)DB.sources=[];
+  var byTitle={};DB.sources.forEach(function(s){byTitle[s.title]=s;});
+  defaults().sources.forEach(function(s){
+    if(!byTitle[s.title]){var c=JSON.parse(JSON.stringify(s));c.id=uid('s');DB.sources.push(c);}
+    else {var ex=byTitle[s.title];
+      if(!ex.file && s.file)ex.file=s.file;                       // backfill missing files
+      else if(s.type==='position' && s.file)ex.file=s.file;        // keep position papers on canonical folder
+    }
+  });
+  saveLocal();
+}
+function pushCloud(){if(!SB)return;SB.from('app_state').upsert({id:ROW,data:DB,updated_at:new Date().toISOString()}).then(function(r){if(r.error)console.warn('push',r.error.message);});}
+function pullCloud(){return SB.from('app_state').select('data').eq('id',ROW).maybeSingle().then(function(r){if(r.error){console.warn('pull',r.error.message);return false;}if(r.data&&r.data.data){DB=r.data.data;saveLocal();return true;}return false;});}
+function startCloud(){
+  SB=window.supabase.createClient(CONFIG.SUPABASE_URL,CONFIG.SUPABASE_KEY);
+  return pullCloud().then(function(had){
+    if(!had){if(!DB)DB=defaults();pushCloud();}
+    migrate();
+    SB.channel('app_state_rt').on('postgres_changes',{event:'*',schema:'public',table:'app_state',filter:'id=eq.'+ROW},function(pl){
+      if(pl&&pl.new&&pl.new.data){applyingRemote=true;DB=pl.new.data;saveLocal();if(document.getElementById('app').style.display!=='none')render();applyingRemote=false;}
+    }).subscribe();
+  });
+}
+function resetAll(){if(confirm('לאפס את כל הנתונים לברירת המחדל? פעולה זו אינה הפיכה.')){DB=defaults();saveLocal();if(cloudOn())pushCloud();buildEntry();render();toast('הנתונים אופסו');}}
+
+/* ---------- state + helpers ---------- */
+var ST={role:'res',rid:'r1',screen:'home'};
+function curRes(){return DB.residents.find(function(r){return r.id===ST.rid;})||DB.residents[0];}
+function findRes(id){return DB.residents.find(function(r){return r.id===id;});}
+function cohortResidents(){return DB.residents.filter(function(r){return r.status!=='archived';});}
+function pr(){return DB.perResident[ST.rid];}
+function isLocked(){return DB.cohort.locked;}
+function canEditMgr(){return ST.role==='mgr' && !isLocked();}
+function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(m){var t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},1800);}
+function pct(a,b){return b?Math.round(100*a/b):0;}
+function initials(r){var n=r.name.replace('ד״ר ','').trim().split(' ');return (n[0]?n[0][0]:'')+(n[1]?n[1][0]:'');}
+function dayHas(d,rid){return (d.residents||[]).indexOf(rid)>=0;}
+function myDays(){return DB.calendar.filter(function(d){return dayHas(d,ST.rid);}).sort(function(a,b){return a.date<b.date?-1:1;});}
+function cnt(id){return pr().countProgress[id]||0;}
+function skillStat(id){return pr().skillStatus[id]||0;}
+function srcStats(fn){var t=DB.sources.filter(fn),m=t.filter(function(s){return pr().srcMastery[s.id];});return {m:m.length,t:t.length};}
+function countPct(){var d=0,t=0;DB.counts.forEach(function(c){t+=c.target;d+=Math.min(cnt(c.id),c.target);});return pct(d,t);}
+function skillPct(){var d=0;DB.skills.forEach(function(k){d+=skillStat(k.id);});return pct(d,DB.skills.length*2);}
+function masterPct(){var m=0;DB.sources.forEach(function(s){if(pr().srcMastery[s.id])m++;});return pct(m,DB.sources.length);}
+function trainPct(){return Math.round((countPct()+skillPct()+masterPct())/3);}
+
+/* ============================ RENDER ============================ */
+function render(){
+  var s=ST.screen,m={home:renderHome,cal:renderCal,train:renderTrain,sources:renderSources,goals:renderCert,tips:renderTips,progress:renderProgress,settings:renderSettings,onboard:renderOnboard,admin:renderAdmin};
+  if(m[s])m[s]();
+}
+function resSwitch(){
+  if(ST.role!=='mgr')return '';
+  return '<div class="res-switch mgr-only flex">'+cohortResidents().map(function(r){return '<button class="rs '+(r.id===ST.rid?'on':'')+'" onclick="switchRes(\''+r.id+'\')">'+esc(r.name)+'</button>';}).join('')+'</div>';
+}
+function switchRes(id){ST.rid=id;document.getElementById('ctxName').textContent='מנהל · '+curRes().name;render();}
+
+/* ---------- HOME ---------- */
+function row(k,v){return '<div class="today-row"><span class="k">'+esc(k)+'</span><span class="v">'+esc(v)+'</span></div>';}
+function todayDay(){var t=iso(new Date());return DB.calendar.find(function(d){return d.date===t&&dayHas(d,ST.rid);})||null;}
+function renderHome(){
+  var r=curRes(),md=myDays(),t=iso(new Date());
+  var today=todayDay();var up=md.filter(function(d){return d.date>=t;});if(!up.length)up=md.slice();up=up.slice(0,3);
+  var html=resSwitch();
+  html+='<div class="head"><div class="title">שלום, '+esc(r.name)+'</div><div class="subtitle">חודש קליטה · '+esc(DB.cohort.label)+' · אחראי חודש: '+esc(DB.cohort.monthLead)+' · מנטור: '+esc(r.mentor||'טרם הוגדר')+' '+(isLocked()?'<span class="badge locked">נעולה להערכה</span>':'<span class="badge open">פעילה</span>')+'</div></div>';
+  if(ST.role==='mgr'){
+    var pend=[];cohortResidents().forEach(function(rr){(DB.perResident[rr.id].dailyNotes||[]).forEach(function(n,i){if(!n.read)pend.push({rid:rr.id,name:rr.name,i:i,n:n});});});
+    pend.sort(function(a,b){return a.n.date<b.n.date?1:-1;});
+    html+='<div class="sec">ריכוז הערות מהמתמחים'+(pend.length?' · '+pend.length+' חדשות':'')+' <span class="ln"></span></div>';
+    if(!pend.length)html+='<div class="card" style="color:var(--muted)">אין הערות חדשות. הערות שסומנו כנקראו נשמרות בתיק המתמחה.</div>';
+    else{html+='<div class="cl">';pend.forEach(function(p){var rr=findRes(p.rid),dt=parseISO(p.n.date);html+='<div class="cl-row"><div class="cl-h"><span class="cl-n"><span class="rchip '+rr.color+'" style="display:inline-grid;vertical-align:middle;margin-inline-end:8px">'+esc(initials(rr))+'</span>'+esc(p.name)+'</span><span class="cl-c">'+fmtDMY(dt)+'</span></div><div style="font-size:14px;margin-top:4px">'+esc(p.n.text)+'</div><button class="ttool" style="margin-top:9px" onclick="markNoteRead(\''+p.rid+'\','+p.i+')">סמן כנקרא ← לתיק המתמחה</button></div>';});html+='</div>';}
+  }
+  html+='<div class="grid g2"><div class="today"><div class="lbl">התוכנית של היום</div><div class="dt">'+(today?HE_DOW[parseISO(today.date).getDay()]+', '+parseISO(today.date).getDate()+'.'+(parseISO(today.date).getMonth()+1):'אין יום מתוכנן להיום')+'</div>';
+  if(today){html+=row('תחנה',today.station)+row('מיומנות',today.skill)+row('משובץ עם',today.team||'—');if(today.academic)html+=row('אקדמי',today.academic);if(today.special)html+='<div class="today-row"><span class="k">מיוחד</span><span class="v" style="color:var(--warn)">'+esc(today.special)+'</span></div>';if(today.evening)html+=row('ערב','תורן ערב ללימוד (עד 21:00)');}
+  else{html+='<div style="color:var(--muted);font-size:14px;padding-top:6px">אין יום משובץ להיום. ראה/י לוח חודשי.</div>';}
+  html+='</div><div><div class="mini"><div class="stat"><div class="n">'+trainPct()+'%</div><div class="l">התקדמות כוללת</div><div class="bar"><i style="width:'+trainPct()+'%"></i></div></div></div>';
+  html+='<div class="card" style="margin-top:14px;padding:18px 20px"><div class="lbl" style="font-size:12px;font-weight:700;color:var(--accent-d);text-transform:uppercase">בקרוב בלו״ז</div><div class="up-list">';
+  if(up.length)up.forEach(function(d){var dt=parseISO(d.date);html+='<div class="up"><span class="day">'+HE_DOW[dt.getDay()].slice(0,3)+' '+dt.getDate()+'</span><span>'+esc(d.station)+'</span>'+(d.special?'<span class="tag" style="background:var(--warn-soft);color:var(--warn)">'+esc(d.special.split(' — ')[0])+'</span>':(d.academic?'<span class="tag">'+esc(d.academic.split(' · ')[1]||'אקדמי')+'</span>':''))+'</div>';});
+  else html+='<div style="color:var(--muted);font-size:13px;padding-top:8px">אין ימים קרובים.</div>';
+  html+='</div></div></div></div>';
+  html+='<div class="sec">מיומנויות הכשרה <span class="ln"></span><button class="ttool" onclick="go(\'train\')">לכל היעדים →</button></div><div class="goal-list">';
+  DB.skills.slice(0,6).forEach(function(k){var s=skillStat(k.id);html+='<div class="goal"><svg class="icon gi" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/></svg><div><div class="gt">'+esc(k.name)+(k.isNew?' <span class="new">חדש</span>':'')+'</div><div class="gd">'+esc(k.desc)+'</div></div><span class="gs"><span class="stpill s'+s+'">'+['לא התחיל','בתהליך','נרכש'][s]+'</span></span></div>';});
+  html+='</div>';
+  document.getElementById('s-home').innerHTML=html;
+}
+function markNoteRead(rid,i){var arr=DB.perResident[rid]&&DB.perResident[rid].dailyNotes;if(arr&&arr[i]){arr[i].read=true;save();renderHome();toast('נשמר בתיק המתמחה');}}
+
+/* ---------- CALENDAR (shared, multi-resident assignment) ---------- */
+var calView='grid';
+function setCalView(v){calView=v;renderCal();}
+function rchips(d,clickable){
+  return cohortResidents().map(function(r){
+    var on=dayHas(d,r.id);
+    if(clickable)return '<button class="rtog '+r.color+(on?' on':'')+'" title="'+esc(r.name)+'" onclick="toggleAssign(\''+d.date+'\',\''+r.id+'\');event.stopPropagation()">'+esc(initials(r))+'</button>';
+    return on?'<span class="rchip '+r.color+'" title="'+esc(r.name)+'">'+esc(initials(r))+'</span>':'';
+  }).join('');
+}
+function renderCal(){
+  var html=resSwitch();
+  html+='<div class="head"><div class="title">תצוגת לוח חודשי</div>';
+  html+='<div class="subtitle res-only">התוכנית המשותפת שהוכנה עבורכם. הימים שלך מודגשים.</div>';
+  html+='<div class="subtitle mgr-only">תצוגה בלבד. עריכת הלוח והשיבוצים — במסך "ניהול תוכנית".</div></div>';
+  html+='<div class="cal-bar">';
+  cohortResidents().forEach(function(x){html+='<span class="legend"><span class="sw" style="background:var(--'+x.color+')"></span> '+esc(x.name.replace('ד״ר ',''))+'</span>';});
+  html+='<span class="legend" style="font-weight:700;color:var(--ink)">'+esc(DB.cohort.label)+'</span><span class="push"></span>';
+  html+='<span class="legend" style="color:'+(isLocked()?'var(--warn)':'var(--ok)')+'">'+(isLocked()?'נעולה להערכה':'פתוחה לצפייה')+'</span>';
+  html+='</div>';
+  if(!DB.calendar.length){html+='<div class="card">הלוח ריק. בנה אותו במסך "ניהול תוכנית" ← "בניית לוח התוכנית".</div>';document.getElementById('s-cal').innerHTML=html;return;}
+  html+=calGrid();
+  document.getElementById('s-cal').innerHTML=html;
+}
+function short(s){return s.length>16?s.slice(0,15)+'…':s;}
+function calGrid(){
+  var first=parseISO(DB.calendar[0].date),gridStart=addDays(first,-first.getDay());
+  var last=parseISO(DB.calendar[DB.calendar.length-1].date);
+  var byDate={};DB.calendar.forEach(function(d){byDate[d.date]=d;});
+  var todayISO=iso(new Date()),clickable=false;
+  var html='<div class="cal"><div class="dow">ראשון</div><div class="dow">שני</div><div class="dow">שלישי</div><div class="dow">רביעי</div><div class="dow">חמישי</div>';
+  var cur=new Date(gridStart),guard=0;
+  while(cur<=last && guard<60){
+    for(var i=0;i<5;i++){
+      var dISO=iso(cur),d=byDate[dISO];
+      if(d){
+        var dim=(ST.role==='res'&&!dayHas(d,ST.rid))?' dim':'';
+        html+='<div class="cell '+(dISO===todayISO?'today':'')+dim+'">'+
+          '<div class="dn">'+cur.getDate()+(d.academic?'<span class="hh">'+esc(d.academic.split(' · ')[1]||d.academic)+'</span>':'')+'</div>'+
+          '<div class="rrow">'+rchips(d,clickable)+'</div>'+
+          '<span class="pill st">'+esc(short(d.station))+'</span><span class="pill sk">'+esc(short(d.skill))+'</span>'+
+          (d.evening?'<span class="pill eve">תורן ערב</span>':'')+(d.special?'<span class="pill sp">'+esc(d.special.split(' — ')[0])+'</span>':'')+
+        '</div>';
+      }else html+='<div class="cell empty"><div class="dn">'+cur.getDate()+'</div></div>';
+      cur=addDays(cur,1);
+    }
+    cur=addDays(cur,2);guard++;
+  }
+  html+='</div><p class="foot">בנייד הלוח מוצג כרשימת ימים. שבוע אחרון — סימולציית חירום; לאחר 3 שבועות — שיחת חתך עם מנהל התוכנית.</p>';
+  return html;
+}
+function opts(arr,v){var h=arr.map(function(o){return '<option '+(o===v?'selected':'')+'>'+esc(o)+'</option>';}).join('');if(arr.indexOf(v)<0&&v)h+='<option selected>'+esc(v)+'</option>';return h;}
+function calTable(){
+  var dis=isLocked()?'disabled':'';
+  var rows='';
+  DB.calendar.forEach(function(d){
+    var dt=parseISO(d.date);
+    rows+='<tr><td class="dcol">'+HE_DOW[dt.getDay()]+'<br><span class="dnum">'+dt.getDate()+'.'+(dt.getMonth()+1)+'</span></td>'+
+      '<td><div class="acell">'+rchips(d,!isLocked())+'</div></td>'+
+      '<td><select '+dis+' onchange="updField(\''+d.date+'\',\'station\',this.value)">'+opts(STATIONS,d.station)+'</select></td>'+
+      '<td><select '+dis+' onchange="updField(\''+d.date+'\',\'skill\',this.value)">'+opts(SKILLS,d.skill)+'</select></td>'+
+      '<td><input '+dis+' value="'+esc(d.team||'')+'" onchange="updField(\''+d.date+'\',\'team\',this.value)"></td>'+
+      '<td><input '+dis+' value="'+esc(d.academic||'')+'" placeholder="—" onchange="updField(\''+d.date+'\',\'academic\',this.value)"></td>'+
+      '<td style="text-align:center"><input type="checkbox" '+dis+' '+(d.evening?'checked':'')+' onchange="updField(\''+d.date+'\',\'evening\',this.checked)"></td>'+
+      '<td><input '+dis+' value="'+esc(d.special||'')+'" placeholder="—" onchange="updField(\''+d.date+'\',\'special\',this.value)"></td>'+
+      '<td><input '+dis+' value="'+esc(d.homework||'')+'" placeholder="—" onchange="updField(\''+d.date+'\',\'homework\',this.value)"></td>'+
+      '<td>'+(isLocked()?'':'<button class="xrow" onclick="removeDay(\''+d.date+'\')" title="הסר יום">×</button>')+'</td></tr>';
+  });
+  var html='<div class="ctab-wrap"><table class="ctab"><thead><tr><th>יום</th><th>משובצים</th><th>תחנה</th><th>מיומנות</th><th>משובץ עם</th><th>אקדמי</th><th>ערב</th><th>אירוע מיוחד</th><th>שיעורי בית</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  if(!isLocked())html+='<button class="btn btn-sm" style="margin-top:12px" onclick="addDay()">+ הוסף יום</button>';
+  else html+='<p class="foot">התוכנית נעולה להערכה — לפתיחה לחץ "פתח לעריכה".</p>';
+  return html;
+}
+function toggleAssign(date,rid){if(isLocked())return;var d=DB.calendar.find(function(x){return x.date===date;});if(!d)return;if(!d.residents)d.residents=[];var i=d.residents.indexOf(rid);if(i>=0)d.residents.splice(i,1);else d.residents.push(rid);save();renderCal();}
+function assignAll(){if(isLocked())return;var ids=cohortResidents().map(function(r){return r.id;});DB.calendar.forEach(function(d){d.residents=ids.slice();});save();renderCal();toast('כל המתמחים שובצו לכל הימים');}
+function updField(date,field,value){if(isLocked())return;var d=DB.calendar.find(function(x){return x.date===date;});if(!d)return;d[field]=value;save();}
+function addDay(){if(isLocked())return;var base=DB.calendar.length?parseISO(DB.calendar[DB.calendar.length-1].date):new Date();var nd=addDays(base,1);while(nd.getDay()===5||nd.getDay()===6)nd=addDays(nd,1);DB.calendar.push({date:iso(nd),station:STATIONS[1],skill:SKILLS[1],team:'',academic:(nd.getDay()===2?'הדרכת מתמחים · 07:00':nd.getDay()===3?'הרצאות פוריות · 07:15':''),evening:false,special:'',homework:'',residents:cohortResidents().map(function(r){return r.id;})});save();renderCal();toast('יום נוסף');}
+function removeDay(date){if(isLocked())return;if(!confirm('להסיר את היום מהתוכנית?'))return;DB.calendar=DB.calendar.filter(function(x){return x.date!==date;});save();renderCal();}
+function toggleLock(){DB.cohort.locked=!DB.cohort.locked;save();render();toast(DB.cohort.locked?'התוכנית ננעלה להערכה':'התוכנית נפתחה לעריכה');}
+
+/* ---------- program builder (setup checklist) ---------- */
+var SETUP_ITEMS=[
+ {id:'midwife',label:'עבודת מיילדת',kind:'range',station:'חדר לידה — צמוד מיילדת',skill:'עבודת מיילדת'},
+ {id:'ldr',label:'עבודת רופא חדר לידה',kind:'range',station:'חדר לידה — צמוד רופא בכיר',skill:'עבודת רופא חדר לידה'},
+ {id:'er',label:'עבודת רופא מיון',kind:'range',station:'חדר קבלה',skill:'עבודת רופא מיון'},
+ {id:'ward',label:'עבודת רופא — ביקור מחלקה',kind:'range',station:'יולדות א׳ (HR)',skill:'עבודת רופא חדר לידה'},
+ {id:'us',label:'תפעול מכשיר אולטרסאונד',kind:'range',station:'מכון US',skill:'אולטרסאונד / הערכת משקל'},
+ {id:'cs',label:'ניתוח קיסרי — עוזר (חזרו 3 פעמים)',kind:'point',station:'חדר ניתוח',skill:'עוזר ראשון בקיסרי'},
+ {id:'suture',label:'סדנת תפירה',kind:'point',special:'סדנת תפירה'},
+ {id:'cutmid',label:'שיחת חתך — אמצע',kind:'point',special:'שיחת חתך (אמצע) — ד״ר אילוז'},
+ {id:'cutend',label:'שיחת חתך — סמוך לסיום',kind:'point',special:'שיחת חתך (סיום) — ד״ר אילוז'},
+ {id:'exam',label:'מבחן פרוטוקולים',kind:'point',station:'השלמות / מבחן',skill:'מבחן פרוטוקולים',special:'מבחן פרוטוקולים'},
+ {id:'sim',label:'סימולציית מצבי חירום',kind:'point',special:'סימולציית מצבי חירום — צוות חדר לידה'},
+ {id:'evening',label:'תורנות ערב שבועית',kind:'weekly'}
+];
+function genBlankPlan(startISO){
+  var days=[],d=parseISO(startISO),n=0,c=0,ids=cohortResidents().map(function(r){return r.id;});
+  while(c<20 && n<40){var dow=d.getDay();if(dow!==5&&dow!==6){days.push({date:iso(d),station:'',skill:'',team:'',academic:(dow===2?'הדרכת מתמחים · 07:00':dow===3?'הרצאות פוריות · 07:15':''),evening:false,special:'',homework:'',residents:ids.slice()});c++;}d=addDays(d,1);n++;}
+  return days;
+}
+function makeBlank(){if(!confirm('ליצור לוח ריק מתאריך ההתחלה? התוכן הקיים יוחלף בלוח ריק (ימי עבודה בלבד).'))return;DB.calendar=genBlankPlan(DB.cohort.startDate);save();renderAdmin();toast('נוצר לוח ריק');}
+function dayAt(date){return DB.calendar.find(function(x){return x.date===date;});}
+function renderSetup(){
+  var h='<div class="cl">';
+  SETUP_ITEMS.forEach(function(it){
+    h+='<div class="cl-row"><div class="cl-h"><span class="cl-n">'+esc(it.label)+'</span><span class="cl-c">'+(it.kind==='range'?'טווח ימים':it.kind==='weekly'?'שבועי':'נקודתי')+'</span></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:8px">';
+    if(it.kind==='weekly')h+='<button class="btn btn-sm" onclick="setupWeekly()">שבץ ערב בכל שבוע</button>';
+    else{h+='<input type="date" id="su_'+it.id+'" style="border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;background:var(--bg)">';
+      if(it.kind==='range')h+='<input type="number" id="sud_'+it.id+'" value="3" min="1" max="20" title="מספר ימים" style="width:62px;border:1px solid var(--line-2);border-radius:8px;padding:6px 8px;background:var(--bg)">';
+      h+='<button class="btn btn-sm" onclick="setup(\''+it.id+'\')">שבץ</button>';}
+    h+='</div></div>';
+  });
+  return h+'</div>';
+}
+function setup(id){var it=null;SETUP_ITEMS.forEach(function(x){if(x.id===id)it=x;});if(!it)return;if(isLocked()){toast('התוכנית נעולה — פתח לעריכה');return;}if(!DB.calendar.length){toast('צור קודם לוח (ריק או תבנית)');return;}if(it.kind==='range')setupRange(it);else setupPoint(it);}
+function setupPoint(it){var v=val('su_'+it.id);if(!v){toast('בחר תאריך');return;}var d=dayAt(v);if(!d){toast('התאריך אינו יום עבודה בלוח');return;}if(it.station)d.station=it.station;if(it.skill)d.skill=it.skill;if(it.special)d.special=it.special;save();renderAdmin();toast('שובץ: '+it.label);}
+function setupRange(it){var v=val('su_'+it.id);if(!v){toast('בחר תאריך');return;}var n=Math.max(1,parseInt(val('sud_'+it.id))||1);var idx=-1;DB.calendar.forEach(function(d,i){if(d.date===v)idx=i;});if(idx<0){toast('התאריך אינו בלוח');return;}var placed=0;for(var i=idx;i<DB.calendar.length&&placed<n;i++){DB.calendar[i].station=it.station;DB.calendar[i].skill=it.skill;placed++;}save();renderAdmin();toast('שובצו '+placed+' ימים: '+it.label);}
+function setupWeekly(){if(isLocked()){toast('התוכנית נעולה');return;}if(!DB.calendar.length){toast('צור קודם לוח');return;}var base=parseISO(DB.calendar[0].date),seen={};DB.calendar.forEach(function(d){var dt=parseISO(d.date);var wk=Math.floor((dt-base)/(7*864e5));if(dt.getDay()===3&&!seen[wk]){d.evening=true;seen[wk]=true;}});save();renderAdmin();toast('שובצה תורנות ערב שבועית');}
+
+/* ---------- TRAIN (יעדי הכשרה: 2-layer + knowledge) ---------- */
+var trainOpen={a:true,b:true,c:true,d:false};
+function toggleTrain(k){trainOpen[k]=!trainOpen[k];renderTrain();}
+function trHead(k,label,small,btn){return '<div class="subsec" onclick="toggleTrain(\''+k+'\')"><span class="b"></span> '+label+(small?' <small>'+small+'</small>':'')+'<span style="margin-inline-start:auto;display:flex;align-items:center;gap:10px">'+(btn||'')+'<span class="ar">'+(trainOpen[k]?'▾':'▸')+'</span></span></div>';}
+function renderTrain(){
+  var p=pr();var html=resSwitch();
+  html+='<div class="head"><div class="title">יעדי הכשרה</div><div class="subtitle res-only">מה צריך לדעת לעשות, כמה התנסויות, ושליטה בחומר העיוני. לחיצה על כותרת מקפלת.</div><div class="subtitle mgr-only">ניתן לערוך יעדים וכמויות. לחיצה על כותרת מקפלת. המעקב נפרד לכל מתמחה.</div></div>';
+  if(isLocked())html+='<div class="note-prev" style="background:var(--warn-soft);color:var(--warn);margin-bottom:14px">התוכנית נעולה להערכה — הסימון מושבת.</div>';
+  // A. competencies
+  html+=trHead('a','א. מיומנויות קליניות','לחיצה מעדכנת סטטוס',ST.role==='mgr'?'<button class="ttool" onclick="event.stopPropagation();addSkill()">+ הוסף</button>':'');
+  if(trainOpen.a){html+='<div class="goal-list">';
+    DB.skills.forEach(function(k){var s=skillStat(k.id);html+='<div class="goal"><svg class="icon gi" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"/></svg><div><div class="gt">'+esc(k.name)+(k.isNew?' <span class="new">חדש</span>':'')+'</div><div class="gd">'+esc(k.desc)+'</div></div><span class="gs"><span class="stpill s'+s+'" onclick="cycleSkill(\''+k.id+'\')">'+['לא התחיל','בתהליך','נרכש'][s]+'</span>'+(ST.role==='mgr'?' <button class="ttool" onclick="editSkill(\''+k.id+'\')">✎</button>':'')+'</span></div>';});
+    html+='</div>';}
+  // B. counts
+  html+=trHead('b','ב. התנסות מודדת','סמן כל ביצוע',ST.role==='mgr'?'<button class="ttool" onclick="event.stopPropagation();addCount()">+ הוסף</button>':'');
+  if(trainOpen.b){html+='<div class="cl">';
+    DB.counts.forEach(function(c){var done=Math.min(cnt(c.id),c.target);html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">'+esc(c.name)+(ST.role==='mgr'?' <button class="ttool" onclick="editCount(\''+c.id+'\')">✎</button>':'')+'</span><span class="cl-c">'+done+' / '+c.target+'</span></div><div class="boxes">';for(var i=1;i<=c.target;i++)html+='<div class="cb '+(i<=done?'on':'')+(isLocked()?' lock':'')+'" onclick="tickCount(\''+c.id+'\','+i+')">'+i+'</div>';html+='</div></div>';});
+    html+='</div>';}
+  // C. knowledge mastery (derived from sources)
+  var rolls=[
+    ['פרוטוקולי חובה — שליטה מלאה',function(s){return s.type==='protocol'&&s.level==='full';}],
+    ['נהלים ופק״ל מחלקה — שליטה',function(s){return s.type==='memo'&&s.level==='full';}],
+    ['ערכות הדרכה (כלים, תפירות)',function(s){return s.type==='kit';}],
+    ['פרקי הספר המובילים (GABBE)',function(s){return s.type==='textbook';}],
+    ['פרוטוקולים/נהלים/ניירות עמדה — רמת ידיעה',function(s){return s.level==='know';}]
+  ];
+  html+=trHead('c','ג. שליטה בחומר העיוני','מסומן במסך הלמידה','');
+  if(trainOpen.c){html+='<div class="cl">';
+    rolls.forEach(function(rr){var st=srcStats(rr[1]);if(st.t===0)return;var pp=pct(st.m,st.t);html+='<div class="roll" onclick="go(\'sources\')"><span class="rn">'+esc(rr[0])+'</span><span class="rbar"><span class="bar"><i style="width:'+pp+'%"></i></span></span><span class="rc">'+st.m+'/'+st.t+'</span></div>';});
+    html+='</div>';}
+  // D. aids
+  html+=trHead('d','ד. חומר עזר (סרטונים)','',ST.role==='mgr'?'<button class="ttool" onclick="event.stopPropagation();addAid()">+ הוסף</button>':'');
+  if(trainOpen.d){html+='<div class="cl">';
+    DB.aids.forEach(function(a){html+='<div class="cl-row"><div class="cl-h"><a class="cl-n" href="'+esc(a.url)+'" target="_blank" style="color:var(--accent)">'+esc(a.name)+' ↗</a>'+(ST.role==='mgr'?'<button class="ttool" onclick="delAid(\''+a.id+'\')">הסר</button>':'')+'</div></div>';});
+    html+='</div>';}
+  document.getElementById('s-train').innerHTML=html;
+}
+function cycleSkill(id){if(isLocked()){toast('התוכנית נעולה');return;}var p=pr();p.skillStatus[id]=((p.skillStatus[id]||0)+1)%3;save();renderTrain();}
+function tickCount(cid,n){if(isLocked()){toast('התוכנית נעולה');return;}var p=pr();var cur=p.countProgress[cid]||0;p.countProgress[cid]=(cur===n)?n-1:n;save();renderTrain();}
+function delAid(id){DB.aids=DB.aids.filter(function(a){return a.id!==id;});save();renderTrain();}
+
+/* ---------- SOURCES (type ✕ level, mastery, dual filter) ---------- */
+var fType='all',fLevel='all';
+function setFType(v){fType=v;renderSources();}
+function setFLevel(v){fLevel=v;renderSources();}
+function renderSources(){
+  var p=pr();var html='<div class="head"><div class="title">למידה עיונית</div><div class="subtitle">סוג החומר ורמת השליטה הם שני צירים נפרדים. לחיצה על "פתח קובץ" — פותחת את המסמך; "נשלט" — מסמן שליטה אישית.</div></div>';
+  html+='<div class="filters"><span class="fl">סוג:</span><button class="fbtn '+(fType==='all'?'on':'')+'" onclick="setFType(\'all\')">הכל</button>';
+  TYPES.forEach(function(t){html+='<button class="fbtn '+(fType===t[0]?'on':'')+'" onclick="setFType(\''+t[0]+'\')">'+t[1]+'</button>';});
+  html+='</div><div class="filters"><span class="fl">רמה:</span><button class="fbtn '+(fLevel==='all'?'on':'')+'" onclick="setFLevel(\'all\')">כל הרמות</button>';
+  LEVELS.forEach(function(l){html+='<button class="fbtn '+(fLevel===l[0]?'on':'')+'" onclick="setFLevel(\''+l[0]+'\')">'+l[1]+'</button>';});
+  if(ST.role==='mgr')html+='<button class="ttool push" onclick="addSource()">+ הוסף חומר</button><button class="ttool" style="color:var(--danger)" onclick="resetSources()">אפס ספרייה</button>';
+  html+='</div>';
+  var list=DB.sources.filter(function(s){return (fType==='all'||s.type===fType)&&(fLevel==='all'||s.level===fLevel);});
+  if(!list.length)html+='<div class="card" style="color:var(--muted)">אין חומרים בסינון הזה.</div>';
+  list.forEach(function(s){
+    var notes=p.sourceNotes[s.id]||[],mastered=!!p.srcMastery[s.id];
+    html+='<div class="acc" id="acc-'+s.id+'"><div class="acc-h" onclick="togAcc(\''+s.id+'\')">'+
+      '<span class="typ '+s.type+'">'+tLabel(s.type)+'</span>'+
+      '<span class="nm">'+esc(s.title)+'</span>'+
+      '<span class="ltag '+s.level+'">'+lLabel(s.level)+'</span>'+
+      '<span class="master '+(mastered?'on':'')+'" onclick="toggleMastery(\''+s.id+'\');event.stopPropagation()">'+(mastered?'✓ נשלט':'נשלט')+'</span>'+
+      (s.file?'<a class="file" href="'+encodeURI(s.file)+'" target="_blank" onclick="event.stopPropagation()"><svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="M14 3v5h5M7 3h8l5 5v13H7z"/></svg> פתח</a>':'<span class="nofile">טרם הוזן קובץ</span>')+
+      '<span class="arr"><svg class="icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span></div><div class="acc-b">';
+    if(ST.role==='mgr'){
+      html+='<div class="pick">סוג: '+TYPES.map(function(t){return '<button class="lvlb '+t[0]+(s.type===t[0]?' on':'')+'" onclick="setType(\''+s.id+'\',\''+t[0]+'\')">'+t[1]+'</button>';}).join('')+'</div>';
+      html+='<div class="pick">רמת שליטה: '+LEVELS.map(function(l){return '<button class="lvlb '+l[0]+(s.level===l[0]?' on':'')+'" onclick="setLevel(\''+s.id+'\',\''+l[0]+'\')">'+l[1]+'</button>';}).join('')+'</div>';
+    }
+    if(s.mgrNote)html+='<div class="note-prev">הערת מנהל: '+esc(s.mgrNote)+'</div>';
+    notes.forEach(function(nt){html+='<div class="note-prev" style="background:#F4F6F6;color:var(--ink)"><b>'+esc(nt.by)+':</b> '+esc(nt.text)+'</div>';});
+    html+='<div class="note-add"><label>הוסף הערה מילולית (פתוח למתמחה ולמנהל)</label><textarea id="nt-'+s.id+'" placeholder="כתוב הערה..."></textarea><button class="btn btn-sm" style="margin-top:8px" onclick="addSrcNote(\''+s.id+'\')">שמור הערה</button></div>';
+    html+='<div class="mtools"><button class="ttool" onclick="editSource(\''+s.id+'\')">ערוך / החלף קובץ</button><button class="ttool" onclick="delSource(\''+s.id+'\')">הסר</button></div>';
+    html+='</div></div>';
+  });
+  document.getElementById('s-sources').innerHTML=html;
+}
+function togAcc(id){document.getElementById('acc-'+id).classList.toggle('open');}
+function toggleMastery(sid){var p=pr();p.srcMastery[sid]=!p.srcMastery[sid];save();renderSources();}
+function setLevel(sid,lvl){if(ST.role!=='mgr')return;var s=DB.sources.find(function(x){return x.id===sid;});if(!s)return;s.level=lvl;save();renderSources();var a=document.getElementById('acc-'+sid);if(a)a.classList.add('open');}
+function setType(sid,tp){if(ST.role!=='mgr')return;var s=DB.sources.find(function(x){return x.id===sid;});if(!s)return;s.type=tp;save();renderSources();var a=document.getElementById('acc-'+sid);if(a)a.classList.add('open');}
+function addSrcNote(sid){var v=document.getElementById('nt-'+sid).value.trim();if(!v)return;var p=pr();if(!p.sourceNotes[sid])p.sourceNotes[sid]=[];p.sourceNotes[sid].push({by:ST.role==='mgr'?'מנהל':curRes().name,text:v,date:iso(new Date())});save();renderSources();document.getElementById('acc-'+sid).classList.add('open');toast('ההערה נשמרה');}
+function delSource(id){if(ST.role!=='mgr')return;if(confirm('להסיר חומר זה?')){DB.sources=DB.sources.filter(function(x){return x.id!==id;});save();renderSources();}}
+function resetSources(){if(ST.role!=='mgr')return;if(!confirm('לאפס את ספריית הלמידה לברירת המחדל?\nהמקורות יחזרו לרשימה המקורית, וסימוני "נשלט" וההערות על המקורות יימחקו לכל המתמחים.'))return;DB.sources=srcSeed();DB.residents.forEach(function(r){if(DB.perResident[r.id]){DB.perResident[r.id].srcMastery={};DB.perResident[r.id].sourceNotes={};}});save();renderSources();toast('ספריית הלמידה אופסה');}
+function downloadDossierFor(rid){var r=findRes(rid);if(r)download('תיק_'+r.name.replace('ד״ר ','')+'.txt',buildDossier(rid));}
+
+/* ---------- CERT (הסמכה לתורן רביעי) ---------- */
+function certAuto(code){
+  if(code==='births')return {done:cnt('c_birth_obs')>=3&&cnt('c_birth_recv')>=3,label:Math.min(cnt('c_birth_obs'),3)+'+'+Math.min(cnt('c_birth_recv'),3)+' / 3+3'};
+  if(code==='suture')return {done:skillStat('k_suture')===2,label:['לא התחיל','בתהליך','נרכש'][skillStat('k_suture')]};
+  if(code==='adm_dis')return {done:cnt('c_adm')>=5&&cnt('c_dis')>=5,label:Math.min(cnt('c_adm'),5)+'+'+Math.min(cnt('c_dis'),5)+' / 5+5'};
+  if(code==='gabbe'){var g=srcStats(function(s){return s.type==='textbook';});return {done:g.t>0&&g.m>=g.t,label:g.m+'/'+g.t};}
+  if(code==='weight')return {done:cnt('c_weight')>=10,label:Math.min(cnt('c_weight'),10)+'/10'};
+  if(code==='cs_obs')return {done:cnt('c_cs')>=3,label:Math.min(cnt('c_cs'),3)+'/3'};
+  if(code==='first_assist')return {done:cnt('c_first_assist')>=1,label:Math.min(cnt('c_first_assist'),1)+'/1'};
+  return null;
+}
+function renderCert(){
+  var p=pr();var html=resSwitch();
+  html+='<div class="head"><div class="title">הסמכה לתורן רביעי</div><div class="subtitle">שער הסיום. רוב הסעיפים מתעדכנים אוטומטית מיעדי ההכשרה.</div></div>';
+  var examOK=(parseInt(p.examScore)||0)>=70;
+  var allOK=true;
+  html+='<div class="cl">';
+  DB.certGoals.forEach(function(g){
+    var done=false,right='';
+    if(g.code==='exam'){done=examOK;right='<input type="number" min="0" max="100" value="'+esc(p.examScore)+'" placeholder="ציון" style="width:78px;border:1px solid var(--line-2);border-radius:8px;padding:5px 8px;background:var(--bg)" onchange="setExam(this.value)"> '+(examOK?'<span class="stpill s2">עבר</span>':'<span class="stpill s1">ממתין</span>');}
+    else if(g.manual){done=!!p.certManual[g.id];right='<span class="stpill s'+(done?'2':'0')+'" onclick="toggleCert(\''+g.id+'\')">'+(done?'אושר':'לאישור')+'</span>';}
+    else {var a=certAuto(g.code);done=a.done;right='<span class="cl-c">'+a.label+'</span> <span class="stpill s'+(done?'2':'1')+'">'+(done?'הושלם':'בתהליך')+'</span> <span style="font-size:11px;color:var(--faint)">אוטומטי</span>';}
+    if(!done)allOK=false;
+    html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">'+esc(g.name)+(g.isNew?' <span class="new">חדש</span>':'')+'</span><span class="gs" style="display:flex;align-items:center;gap:8px">'+right+'</span></div></div>';
+  });
+  html+='</div>';
+  html+='<div class="card" style="margin-top:16px;border-color:'+(allOK?'var(--ok)':'var(--line)')+'"><b style="color:'+(allOK?'var(--ok)':'var(--ink)')+'">'+(allOK?'✓ עומד/ת בכל דרישות ההסמכה לתורן רביעי':'טרם הושלמו כל הדרישות')+'</b><div style="font-size:13px;color:var(--muted);margin-top:6px">בסיום: הצהרת המתמחה + חתימת מנהל חדר לידה ומנהל החטיבה הגניקולוגית-מיילדותית.</div></div>';
+  document.getElementById('s-goals').innerHTML=html;
+}
+function toggleCert(id){if(isLocked()){toast('התוכנית נעולה');return;}var p=pr();p.certManual[id]=!p.certManual[id];save();renderCert();}
+function setExam(v){var p=pr();p.examScore=v;save();renderCert();}
+
+/* ---------- TIPS ---------- */
+function renderTips(){
+  var html='<div class="head"><div class="title">טיפים קליניים</div><div class="subtitle res-only">הנחיות מנהל התוכנית.</div><div class="subtitle mgr-only">ניתן לעדכן. המתמחה מקבל את התוכנית כפי שהיא.</div></div>';
+  DB.tips.forEach(function(t){html+='<div class="tip"><svg class="icon ti" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><div class="tx">'+t.text+'</div>'+(ST.role==='mgr'?'<span class="del" onclick="delTip(\''+t.id+'\')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></span>':'')+'</div>';});
+  if(ST.role==='mgr')html+='<button class="btn btn-sm" style="margin-top:6px" onclick="addTip()">+ הוסף טיפ</button>';
+  document.getElementById('s-tips').innerHTML=html;
+}
+function delTip(id){DB.tips=DB.tips.filter(function(t){return t.id!==id;});save();renderTips();}
+
+/* ---------- PROGRESS ---------- */
+function renderProgress(){
+  var p=pr();var html=resSwitch();
+  html+='<div class="head"><div class="title">התקדמות, הערות ומשוב</div><div class="subtitle mgr-only">צפייה פר-מתמחה.</div></div>';
+  html+='<div class="grid g3"><div class="stat"><div class="n">'+countPct()+'%</div><div class="l">התנסות</div></div><div class="stat"><div class="n">'+masterPct()+'%</div><div class="l">שליטה בחומר</div></div><div class="stat"><div class="n">'+skillPct()+'%</div><div class="l">מיומנויות</div></div></div>';
+  html+='<div class="sec">הערת סוף יום</div><div class="card res-only" style="margin-bottom:12px"><label style="font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">תובנות / קשיים — '+fmtDMY(new Date())+'</label><textarea id="newNote" style="width:100%;border:1px solid var(--line-2);border-radius:10px;padding:10px;min-height:62px;background:var(--bg)" placeholder="כתוב/י..."></textarea><button class="btn btn-accent btn-sm" style="margin-top:10px" onclick="addNote()">שלח למנהל</button></div>';
+  html+='<div class="card" style="padding:6px 22px">';
+  if(p.dailyNotes.length)p.dailyNotes.slice().sort(function(a,b){return b.date<a.date?-1:1;}).forEach(function(n){var dt=parseISO(n.date);html+='<div class="note-day"><span class="d">'+fmtDMY(dt)+'</span><span class="t">'+esc(n.text)+'</span></div>';});
+  else html+='<div style="color:var(--muted);font-size:14px;padding:12px 0">אין עדיין הערות.</div>';
+  html+='</div>';
+  html+='<div class="sec res-only">משוב סיום</div>';
+  if(p.feedback.submitted)html+='<div class="card res-only" style="border-color:var(--ok)"><b style="color:var(--ok)">המשוב נשלח.</b><div style="font-size:14px;color:var(--muted);margin-top:6px">'+esc(p.feedback.text)+'</div></div>';
+  else html+='<div class="card res-only">בסיום החודש — מילוי משוב ושליחה למנהל (נשמר ללקחים).<textarea id="fbText" style="width:100%;border:1px solid var(--line-2);border-radius:10px;padding:10px;min-height:80px;background:var(--bg);margin-top:10px" placeholder="מה עבד? מה לשפר?"></textarea><button class="btn btn-accent btn-sm" style="margin-top:10px" onclick="sendFeedback()">שלח משוב</button></div>';
+  html+='<div class="mgr-only"><div class="sec">משוב המתמחה</div><div class="card">'+(p.feedback.submitted?esc(p.feedback.text):'<span style="color:var(--muted)">טרם נשלח.</span>')+'</div><div class="sec">לקחים מצטברים</div><div class="card"><ul style="margin:0;padding-inline-start:18px;font-size:14px">'+DB.lessons.map(function(l){return '<li>'+esc(l)+'</li>';}).join('')+'</ul></div></div>';
+  document.getElementById('s-progress').innerHTML=html;
+}
+function addNote(){var v=document.getElementById('newNote').value.trim();if(!v)return;pr().dailyNotes.push({date:iso(new Date()),text:v});save();renderProgress();toast('ההערה נשלחה');}
+function sendFeedback(){var v=document.getElementById('fbText').value.trim();if(!v)return;pr().feedback={submitted:true,text:v};DB.lessons.push('('+curRes().name+') '+v);save();renderProgress();toast('המשוב נשלח');}
+
+/* ---------- SETTINGS / EXPORT ---------- */
+function renderSettings(){
+  var html='<div class="head"><div class="title">הגדרות וייצוא</div><div class="subtitle">ייצוא התוכנית והנתונים.</div></div><div class="cl">';
+  html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">ייצוא לוח החודש ליומן (.ics)</span><button class="btn btn-sm btn-accent" onclick="exportICS()">ייצא יומן</button></div><div style="font-size:13px;color:var(--muted)">הימים שמשובץ בהם '+esc(curRes().name)+'.</div></div>';
+  html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">הורדת תוכנית הלימוד (.csv)</span><button class="btn btn-sm" onclick="exportCSV()">הורד CSV</button></div></div>';
+  html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">תיק ביצוע מתמחה (טקסט)</span><button class="btn btn-sm" onclick="exportDossier()">הורד תיק</button></div></div>';
+  html+='</div><div class="sec">מערכת</div><div class="cl"><div class="cl-row mgr-only"><div class="cl-h"><span class="cl-n">איפוס ספריית הלמידה בלבד</span><button class="btn btn-sm" onclick="resetSources()">אפס ספרייה</button></div><div style="font-size:13px;color:var(--muted)">מחזיר את רשימת המקורות לברירת המחדל (פרוטוקולים, נהלים, ניירות עמדה, ערכות, GABBE).</div></div><div class="cl-row"><div class="cl-h"><span class="cl-n">איפוס כל הנתונים לברירת מחדל</span><button class="btn btn-sm" style="color:var(--danger)" onclick="resetAll()">אפס הכל</button></div></div></div>';
+  document.getElementById('s-settings').innerHTML=html;
+}
+function download(name,content,type){var blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast('הקובץ הורד');}
+function exportCSV(){var rows=[['תאריך','יום','תחנה','מיומנות','משובץ עם','אקדמי','תורן ערב','אירוע מיוחד','שיעורי בית']];myDays().forEach(function(d){var dt=parseISO(d.date);rows.push([d.date,HE_DOW[dt.getDay()],d.station,d.skill,d.team||'',d.academic||'',d.evening?'כן':'',d.special||'',d.homework||'']);});var csv='﻿'+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\r\n');download('תוכנית_'+curRes().name.replace('ד״ר ','')+'.csv',csv,'text/csv;charset=utf-8');}
+function exportICS(){var L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Orientation OBGYN//HE','CALSCALE:GREGORIAN'];myDays().forEach(function(d){var dn=d.date.replace(/-/g,''),nx=iso(addDays(parseISO(d.date),1)).replace(/-/g,'');var desc=[d.team?'משובץ עם: '+d.team:'',d.academic?'אקדמי: '+d.academic:'',d.special?'מיוחד: '+d.special:'',d.evening?'תורן ערב':'',d.homework?'ש.ב: '+d.homework:''].filter(Boolean).join('\\n');L.push('BEGIN:VEVENT','UID:'+d.date+'-'+ST.rid+'@orientation','DTSTART;VALUE=DATE:'+dn,'DTEND;VALUE=DATE:'+nx,'SUMMARY:'+d.station+' — '+d.skill,'DESCRIPTION:'+desc,'END:VEVENT');});L.push('END:VCALENDAR');download('יומן_'+curRes().name.replace('ד״ר ','')+'.ics',L.join('\r\n'),'text/calendar;charset=utf-8');}
+function buildDossier(rid){
+  var prev=ST.rid;ST.rid=rid;var p=pr(),r=findRes(rid);var L=[];
+  L.push('תיק ביצוע — '+r.name);L.push('חודש קליטה: '+DB.cohort.label+' · מנטור: '+(r.mentor||'—'));L.push('הופק: '+fmtHe(new Date()));L.push('');
+  L.push('== מיומנויות ==');DB.skills.forEach(function(k){L.push('• '+k.name+': '+['לא התחיל','בתהליך','נרכש'][skillStat(k.id)]);});
+  L.push('');L.push('== התנסות מודדת ==');DB.counts.forEach(function(c){L.push('• '+c.name+': '+Math.min(cnt(c.id),c.target)+' / '+c.target);});
+  L.push('');L.push('== שליטה בחומר ==');L.push('סה״כ נשלט: '+masterPct()+'%');
+  L.push('');L.push('== הסמכה לתורן רביעי ==');DB.certGoals.forEach(function(g){var d;if(g.code==='exam')d=(parseInt(p.examScore)||0)>=70;else if(g.manual)d=!!p.certManual[g.id];else d=certAuto(g.code).done;L.push('['+(d?'V':' ')+'] '+g.name);});L.push('ציון מבחן: '+(p.examScore||'—'));
+  L.push('');L.push('== הערות יומיות ==');p.dailyNotes.forEach(function(n){L.push(n.date+': '+n.text);});
+  L.push('');L.push('== משוב סיום ==');L.push(p.feedback.submitted?p.feedback.text:'(טרם נשלח)');
+  ST.rid=prev;return L.join('\n');
+}
+function exportDossier(){download('תיק_'+curRes().name.replace('ד״ר ','')+'.txt',buildDossier(ST.rid));}
+
+/* ---------- ONBOARD (manager) ---------- */
+function renderOnboard(){
+  var r=curRes(),p=pr();
+  var html='<div class="head"><div class="title">צ\'קליסט קליטה — מנהל</div><div class="subtitle">ציר הזמן נגזר אחורה ממועד תחילת חודש האורינטציה.</div></div>'+resSwitch();
+  html+='<div class="card" style="margin-bottom:18px;display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap"><div><div style="font-size:12px;color:var(--muted);font-weight:700">מתמחה</div><div style="font-weight:700;font-size:16px">'+esc(r.name)+'</div></div><div class="fld" style="margin:0"><label>מועד תחילת חודש האורינטציה</label><input type="date" id="startDate" value="'+esc(DB.cohort.startDate)+'" onchange="changeStart()"></div></div>';
+  html+='<div class="tl">';var base=parseISO(DB.cohort.startDate);
+  DB.onboardTasks.forEach(function(m,mi){var d=addDays(base,m.off);html+='<div class="tl-item"><div class="tl-card"><div class="tl-top"><span class="tl-when">'+esc(m.when)+'</span><span class="tl-date">'+fmtHe(d)+'</span></div>';m.tasks.forEach(function(t,xi){var key=mi+'-'+xi,on=p.onboardDone[key];html+='<div class="tl-task"><span class="tcb '+(on?'on':'')+'" onclick="tickOnboard(\''+key+'\')">'+(on?'✓':'')+'</span><span>'+esc(t)+'</span></div>';});html+='</div></div>';});
+  html+='</div>';
+  document.getElementById('s-onboard').innerHTML=html;
+}
+function tickOnboard(key){var p=pr();p.onboardDone[key]=!p.onboardDone[key];save();renderOnboard();}
+function changeStart(){var v=document.getElementById('startDate').value;if(!v)return;DB.cohort.startDate=v;save();renderOnboard();}
+
+/* ---------- ADMIN ---------- */
+function renderAdmin(){
+  var html='<div class="head"><div class="title">ניהול תוכנית</div><div class="subtitle">הגדרות המחזור, המתמחים, ובניית/עריכת לוח התוכנית.</div></div>';
+  html+='<div class="sec">הגדרות מחזור</div>';
+  html+='<div class="card" style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap"><div class="fld" style="margin:0"><label>תווית חודש</label><input id="coLabel" value="'+esc(DB.cohort.label)+'"></div><div class="fld" style="margin:0"><label>אחראי תוכנית</label><input id="coLead" value="'+esc(DB.cohort.monthLead)+'"></div><div class="fld" style="margin:0"><label>מועד התחלה</label><input type="date" id="coStart" value="'+esc(DB.cohort.startDate)+'"></div><button class="btn btn-sm btn-accent" onclick="saveCohort()">שמור</button>'+(isLocked()?'<button class="btn btn-sm btn-accent" onclick="toggleLock()">פתח לעריכה</button>':'<button class="btn btn-sm btn-warn" onclick="toggleLock()">נעל להערכה</button>')+'</div>';
+  html+='<div class="sec">מתמחים בתוכנית</div><div class="cl">';
+  cohortResidents().forEach(function(r){html+='<div class="cl-row"><div class="cl-h"><span class="cl-n"><span class="rchip '+r.color+'" style="display:inline-grid;vertical-align:middle;margin-inline-end:8px">'+esc(initials(r))+'</span>'+esc(r.name)+'</span><span class="cl-c">מנטור: '+esc(r.mentor||'—')+'</span></div><div style="display:flex;gap:8px;margin-top:11px;flex-wrap:wrap"><button class="ttool" onclick="editResident(\''+r.id+'\')">ערוך פרטים</button><button class="ttool" onclick="downloadDossierFor(\''+r.id+'\')">⬇ תיק ביצוע</button><button class="ttool" style="color:var(--danger)" onclick="closeProgram(\''+r.id+'\')">סגור תוכנית (לארכיון)</button></div></div>';});
+  html+='</div>';
+  if(!cohortResidents().length)html+='<div class="card" style="color:var(--muted);margin-top:12px">אין מתמחים פעילים. הוסף מתמחה כדי להתחיל מחזור חדש.</div>';
+  if(cohortResidents().length<3)html+='<button class="btn btn-accent btn-sm" style="margin-top:14px" onclick="addResident()">+ הוסף מתמחה</button>';
+  else html+='<p class="foot">הגעת ל-3 מתמחים (מקסימום).</p>';
+  html+='<div class="sec">בניית לוח התוכנית</div>';
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="btn btn-sm" onclick="makeBlank()">צור לוח ריק מתאריך ההתחלה</button><button class="btn btn-sm" onclick="regenPlan()">מלא תבנית אוטומטית (4 שבועות)</button><button class="btn btn-sm" onclick="assignAll()">שבץ את כל המתמחים בכל הימים</button></div>';
+  html+='<div style="font-size:13px;color:var(--muted);margin-bottom:10px">בחר תאריך לכל פעילות ולחץ "שבץ" כדי להציב אותה בלוח. פעילות "טווח" ממלאת מספר ימי עבודה רצופים.</div>';
+  html+=renderSetup();
+  html+='<div class="sec">עריכת לו״ז חודשי</div>';
+  if(!DB.calendar.length)html+='<div class="card" style="color:var(--muted)">הלוח ריק. "צור לוח ריק" או "מלא תבנית אוטומטית" למעלה.</div>';
+  else html+=calTable();
+  html+='<div class="sec">ארכיון תוכניות שנסגרו</div>';
+  if(!DB.archive.length)html+='<div class="card" style="color:var(--muted)">אין עדיין תוכניות בארכיון. סגירת תוכנית של מתמחה תשמור כאן את תיק הביצוע שלו.</div>';
+  else{html+='<div class="cl">';DB.archive.slice().reverse().forEach(function(a){html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">'+esc(a.name)+'</span><span class="cl-c">'+esc(a.cohortLabel)+' · נסגר '+fmtHe(parseISO(a.closedDate))+'</span></div><div style="font-size:13px;color:var(--muted)">בסגירה: התנסות '+a.stats.count+'% · שליטה בחומר '+a.stats.master+'% · מיומנויות '+a.stats.skill+'%</div><div style="display:flex;gap:8px;margin-top:11px;flex-wrap:wrap"><button class="ttool" onclick="downloadArchive(\''+a.id+'\')">⬇ הורד תיק ביצוע</button><button class="ttool" style="color:var(--danger)" onclick="delArchive(\''+a.id+'\')">מחק מהארכיון</button></div></div>';});html+='</div>';}
+  document.getElementById('s-admin').innerHTML=html;
+}
+function saveCohort(){DB.cohort.label=val('coLabel');DB.cohort.monthLead=val('coLead');var s=val('coStart');if(s)DB.cohort.startDate=s;save();render();toast('נשמר');}
+function regenPlan(){if(confirm('לחולל מחדש את לוח החודש לפי מועד ההתחלה?')){DB.calendar=genPlan(DB.cohort.startDate);var ids=cohortResidents().map(function(r){return r.id;});DB.calendar.forEach(function(d){d.residents=ids.slice();});save();render();toast('הלו״ז חולל מחדש');}}
+function closeProgram(id){
+  var r=findRes(id);
+  if(!confirm('לסגור את תוכנית האורינטציה של '+r.name+'?\nהתיק יישמר בארכיון, והמתמחה יוסר מהלוח, משער הכניסה ומכל המסכים.'))return;
+  var prev=ST.rid;ST.rid=id;var stats={count:countPct(),master:masterPct(),skill:skillPct(),train:trainPct()};ST.rid=prev;
+  DB.archive.push({id:uid('arch'),name:r.name,mentor:r.mentor,cohortLabel:DB.cohort.label,closedDate:iso(new Date()),stats:stats,text:buildDossier(id)});
+  r.status='archived';
+  DB.calendar.forEach(function(d){d.residents=(d.residents||[]).filter(function(x){return x!==id;});});
+  if(ST.rid===id){var act=cohortResidents();ST.rid=act.length?act[0].id:(DB.residents[0]?DB.residents[0].id:'');}
+  save();buildEntry();render();toast('התוכנית נסגרה ונשמרה בארכיון');
+}
+function downloadArchive(aid){var a=DB.archive.find(function(x){return x.id===aid;});if(a)download('תיק_'+a.name.replace('ד״ר ','')+'_'+a.closedDate+'.txt',a.text);}
+function delArchive(aid){if(confirm('למחוק את הרשומה מהארכיון לצמיתות?')){DB.archive=DB.archive.filter(function(x){return x.id!==aid;});save();renderAdmin();}}
+
+/* ---------- generic edit modal ---------- */
+function openEdit(title,body,onSave){document.getElementById('emTitle').textContent=title;document.getElementById('emBody').innerHTML=body;var b=document.getElementById('emSave'),nb=b.cloneNode(true);b.parentNode.replaceChild(nb,b);nb.addEventListener('click',function(){onSave();});openModal('editModal');}
+function val(id){var e=document.getElementById(id);return e?e.value.trim():'';}
+function fld(id,label,v,ph){return '<div class="fld"><label>'+esc(label)+'</label><input id="'+id+'" value="'+esc(v||'')+'" placeholder="'+esc(ph||'')+'"></div>';}
+function uid(p){return p+Date.now().toString(36)+Math.floor(Math.random()*99);}
+function addSkill(){openEdit('מיומנות חדשה',fld('e_n','שם','')+fld('e_d','תיאור',''),function(){if(!val('e_n'))return;DB.skills.push({id:uid('k'),name:val('e_n'),desc:val('e_d'),isNew:true});save();closeModal('editModal');renderTrain();});}
+function editSkill(id){var k=DB.skills.find(function(x){return x.id===id;});openEdit('עריכת מיומנות',fld('e_n','שם',k.name)+fld('e_d','תיאור',k.desc)+'<button class="btn btn-sm" style="color:var(--danger)" onclick="DB.skills=DB.skills.filter(function(x){return x.id!==\''+id+'\';});save();closeModal(\'editModal\');renderTrain();">מחק</button>',function(){k.name=val('e_n');k.desc=val('e_d');save();closeModal('editModal');renderTrain();});}
+function addCount(){openEdit('שורת התנסות חדשה',fld('e_n','שם','')+fld('e_t','כמות נדרשת','5'),function(){if(!val('e_n'))return;DB.counts.push({id:uid('c'),name:val('e_n'),target:Math.max(1,parseInt(val('e_t'))||1)});save();closeModal('editModal');renderTrain();});}
+function editCount(id){var c=DB.counts.find(function(x){return x.id===id;});openEdit('עריכת שורה',fld('e_n','שם',c.name)+fld('e_t','כמות נדרשת',c.target)+'<button class="btn btn-sm" style="color:var(--danger)" onclick="DB.counts=DB.counts.filter(function(x){return x.id!==\''+id+'\';});save();closeModal(\'editModal\');renderTrain();">מחק</button>',function(){c.name=val('e_n');c.target=Math.max(1,parseInt(val('e_t'))||1);save();closeModal('editModal');renderTrain();});}
+function addTip(){openEdit('טיפ חדש','<div class="fld"><label>הטיפ</label><textarea id="e_x" style="width:100%;min-height:70px;border:1px solid var(--line-2);border-radius:10px;padding:9px;background:var(--bg)"></textarea></div>',function(){var v=val('e_x');if(!v)return;DB.tips.push({id:uid('t'),text:v});save();closeModal('editModal');renderTips();});}
+function addAid(){openEdit('חומר עזר חדש',fld('e_n','שם','')+fld('e_u','קישור','','https://...'),function(){if(!val('e_n'))return;DB.aids.push({id:uid('a'),name:val('e_n'),url:val('e_u')});save();closeModal('editModal');renderTrain();});}
+function typeSel(id,v){return '<div class="fld"><label>סוג חומר</label><select id="'+id+'">'+TYPES.map(function(t){return '<option value="'+t[0]+'"'+(v===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>';}
+function levelSel(id,v){return '<div class="fld"><label>רמת שליטה</label><select id="'+id+'">'+LEVELS.map(function(l){return '<option value="'+l[0]+'"'+(v===l[0]?' selected':'')+'>'+l[1]+'</option>';}).join('')+'</select></div>';}
+function addSource(){openEdit('חומר חדש',fld('e_n','כותרת','')+fld('e_f','נתיב קובץ או URL','','חומרי הדרכה ונהלים/...pdf')+typeSel('e_t','protocol')+levelSel('e_l','full'),function(){if(!val('e_n'))return;DB.sources.push({id:uid('s'),title:val('e_n'),file:val('e_f'),type:val('e_t'),level:val('e_l'),mgrNote:''});save();closeModal('editModal');renderSources();});}
+function editSource(id){var s=DB.sources.find(function(x){return x.id===id;});openEdit('עריכת חומר',fld('e_n','כותרת',s.title)+fld('e_f','נתיב קובץ או URL',s.file)+typeSel('e_t',s.type)+levelSel('e_l',s.level)+'<div class="fld"><label>הערת מנהל</label><textarea id="e_m" style="width:100%;min-height:54px;border:1px solid var(--line-2);border-radius:10px;padding:9px;background:var(--bg)">'+esc(s.mgrNote)+'</textarea></div>',function(){s.title=val('e_n');s.file=val('e_f');s.type=val('e_t');s.level=val('e_l');s.mgrNote=val('e_m');save();closeModal('editModal');renderSources();});}
+function addResident(){if(cohortResidents().length>=3)return;openEdit('מתמחה חדש',fld('e_n','שם','','ד״ר ...')+fld('e_m','מנטור',''),function(){if(!val('e_n'))return;var used=DB.residents.map(function(r){return r.color;});var color=['res1','res2','res3'].filter(function(c){return used.indexOf(c)<0;})[0]||'res3';var id=uid('r');DB.residents.push({id:id,name:val('e_n'),color:color,mentor:val('e_m'),status:'active'});DB.perResident[id]={skillStatus:{},countProgress:{},srcMastery:{},certManual:{},examScore:'',dailyNotes:[],feedback:{submitted:false,text:''},onboardDone:{},sourceNotes:{}};DB.calendar.forEach(function(d){if(!d.residents)d.residents=[];d.residents.push(id);});save();closeModal('editModal');buildEntry();render();});}
+function editResident(id){var r=findRes(id);openEdit('עריכת מתמחה',fld('e_n','שם',r.name)+fld('e_m','מנטור',r.mentor),function(){r.name=val('e_n');r.mentor=val('e_m');save();closeModal('editModal');buildEntry();render();});}
+
+/* ---------- nav / entry ---------- */
+function buildEntry(){
+  var html='';
+  cohortResidents().forEach(function(r){html+='<button class="prog" onclick="enter(\'res\',\''+r.id+'\')"><span class="av '+r.color+'">'+esc(initials(r))+'</span><span><span class="nm">תוכנית אורינטציה — '+esc(r.name)+'</span><br><span class="ro">'+esc(DB.cohort.label)+' · מתמחה</span></span><span class="go"><svg class="icon" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></span></button>';});
+  html+='<button class="prog" onclick="enter(\'mgr\',\''+((cohortResidents()[0]||DB.residents[0]||{id:''}).id)+'\')"><span class="av mg"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.5 7.5 0 000-2l1.7-1.3-2-3.4-2 .8a7.5 7.5 0 00-1.7-1L15 4h-4l-.4 2.1a7.5 7.5 0 00-1.7 1l-2-.8-2 3.4L4.6 11a7.5 7.5 0 000 2l-1.7 1.3 2 3.4 2-.8a7.5 7.5 0 001.7 1L11 20h4l.4-2.1a7.5 7.5 0 001.7-1l2 .8 2-3.4z"/></svg></span><span><span class="nm">מנהל תוכנית — ד״ר אילוז רועי</span><br><span class="ro">הרשאות מנהל מלאות</span></span><span class="go"><svg class="icon" viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6"/></svg></span></button>';
+  document.getElementById('entryList').innerHTML=html;
+}
+function enter(role,rid){ST.role=role;ST.rid=rid;document.getElementById('entry').style.display='none';document.getElementById('app').style.display='block';var lay=document.getElementById('layout'),ctx=document.getElementById('ctx');if(role==='mgr')lay.classList.add('mgr');else lay.classList.remove('mgr');ctx.className='ctx '+(role==='mgr'?'':curRes().color);document.getElementById('ctxName').textContent=role==='mgr'?'מנהל · '+curRes().name:curRes().name;go('home');window.scrollTo(0,0);}
+function leave(){document.getElementById('app').style.display='none';document.getElementById('entry').style.display='grid';buildEntry();}
+function go(s){ST.screen=s;document.querySelectorAll('.screen').forEach(function(e){e.classList.remove('show');});var t=document.getElementById('s-'+s);if(t)t.classList.add('show');document.querySelectorAll('.nav a,.mob-nav a').forEach(function(a){a.classList.toggle('active',a.dataset.s===s);});render();window.scrollTo(0,0);}
+function openModal(id){document.getElementById(id).classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.overlay').forEach(function(o){o.addEventListener('click',function(e){if(e.target===o)o.classList.remove('show');});});
+
+function boot(){load();buildEntry();if(cloudOn()){startCloud().then(function(){buildEntry();}).catch(function(e){console.warn('cloud init failed',e);});}}
+boot();
+</script>
+</body>
+</html>
