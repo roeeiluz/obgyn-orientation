@@ -343,7 +343,7 @@ a{color:inherit;text-decoration:none}
    ============================================================ */
 var CONFIG={ SUPABASE_URL:'', SUPABASE_KEY:'' };  /* למילוי בעת מעבר לענן — ראה README_פריסה */
 var KEY='orientation_app_v2';
-var VERSION='3.2';  /* מתעדכן בכל שינוי */
+var VERSION='3.3';  /* מתעדכן בכל שינוי */
 var HE_DOW=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 var HE_MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 var STATIONS=['אדמיניסטרציה ובטיחות','חדר לידה — צמוד מיילדת','חדר לידה — צמוד רופא בכיר','חדר ניתוח','מכון US','יולדות א׳ (HR)','יולדות ב׳','חדר קבלה','השלמות / מבחן'];
@@ -708,7 +708,7 @@ function calGrid(){
         var body='';
         shownIds.forEach(function(id){var r=findRes(id);if(!r)return;var s=slot(d,id);body+='<span class="pill '+whoCls(r.color)+'">'+esc(initials(r))+' · '+esc(short(s.station||'—'))+'</span>';});
         var oncall='';
-        if(ST.role==='res'){if(dayHas(d,ST.rid)&&!isLocked())oncall='<span class="pill eve" style="cursor:pointer" onclick="toggleEvening(\''+dISO+'\')">'+(slot(d,ST.rid).evening?'✓ תורן ערב':'+ שבץ תורן ערב')+'</span>';else if(dayHas(d,ST.rid)&&slot(d,ST.rid).evening)oncall='<span class="pill eve">תורן ערב</span>';}
+        if(ST.role==='res'){if(dayHas(d,ST.rid)&&!isLocked())oncall='<span class="pill eve" style="cursor:pointer" onclick="toggleEvening(\''+dISO+'\')">'+(slot(d,ST.rid).evening?'✓ תורן ערב (אני)':'+ שבץ תורן ערב')+'</span>';else if(dayHas(d,ST.rid)&&slot(d,ST.rid).evening)oncall='<span class="pill eve">תורן ערב (אני)</span>';(d.residents||[]).forEach(function(id){if(id!==ST.rid&&slot(d,id).evening){var rr=findRes(id);oncall+='<span class="pill eve" style="opacity:.6">תורן · '+esc(initials(rr))+'</span>';}});}
         else{(d.residents||[]).forEach(function(id){if(slot(d,id).evening){var r=findRes(id);oncall+='<span class="pill eve">תורן · '+esc(initials(r))+'</span>';}});}
         html+='<div class="cell '+(dISO===todayISO?'today':'')+dim+'">'+
           '<div class="dn">'+cur.getDate()+(d.academic?'<span class="hh">'+esc(d.academic.split(' · ')[1]||d.academic)+'</span>':'')+'</div>'+
@@ -746,8 +746,8 @@ function renderSchedule(){
         html+='<select '+dis+' onchange="updSlot(\''+d.date+'\',\''+r.id+'\',\'skill\',this.value)" style="flex:1;min-width:130px;'+FLD+'">'+opts(SKILLS,s.skill)+'</select>';
         html+='<input '+dis+' value="'+esc(s.team||'')+'" placeholder="משובץ עם" onchange="updSlot(\''+d.date+'\',\''+r.id+'\',\'team\',this.value)" style="width:110px;'+FLD+'">';
         html+='<label class="toggle" style="font-size:12.5px;white-space:nowrap"><input type="checkbox" '+dis+' '+(s.evening?'checked':'')+' onchange="updSlot(\''+d.date+'\',\''+r.id+'\',\'evening\',this.checked)"> תורן ערב</label>';
-        html+='<button class="ttool" onclick="toggleEval(\''+d.date+'_'+r.id+'\')">הערכה ▾</button></div>';
-        html+='<div id="ev-'+d.date+'_'+r.id+'" style="display:none;padding:2px 0 8px"><textarea '+dis+' placeholder="הערכת '+esc(r.name)+' ליום זה..." onchange="updEval(\''+d.date+'\',\''+r.id+'\',this.value)" style="width:100%;min-height:44px;'+FLD+'">'+esc((d.eval&&d.eval[r.id])||'')+'</textarea></div>';
+        html+='<button class="ttool" onclick="toggleEval(\''+d.date+'_'+r.id+'\')">הערה ▾</button></div>';
+        html+='<div id="ev-'+d.date+'_'+r.id+'" style="display:none;padding:2px 0 8px"><textarea '+dis+' placeholder="הערה ל'+esc(r.name)+' ליום זה..." onchange="updEval(\''+d.date+'\',\''+r.id+'\',this.value)" style="width:100%;min-height:44px;'+FLD+'">'+esc((d.eval&&d.eval[r.id])||'')+'</textarea></div>';
       }else{html+='<span style="font-size:13px;color:var(--faint)">לא משובץ ביום זה</span></div>';}
     });
     html+='</div>';
