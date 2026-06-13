@@ -1,21 +1,30 @@
 /**
- * Backend לאפליקציית אורינטציה OB/GYN — Google Apps Script.
+ * Backend + Proxy לאפליקציית אורינטציה OB/GYN — Google Apps Script.
  *
- * תפקיד: לשמור את כל מצב האפליקציה (אובייקט DB אחד) כך שכל המכשירים
- * רואים את אותם הנתונים. שכבת ה-localStorage באפליקציה נשארת כגיבוי מקומי.
+ * למה זה קיים: רשת רמב"ם חוסמת את GitHub, אבל מאפשרת את google.com.
+ * הסקריפט הזה רץ על השרתים של גוגל (שכן מגיעים ל-GitHub) ועושה שני דברים:
  *
- * חוזה מול הלקוח (index.html):
- *   GET  /exec            -> { "data": <DB או null> }
- *   POST /exec  body=JSON { "data": <DB> }  -> { "ok": true }
+ *   1) מגיש את האפליקציה — מושך את index.html העדכני מ-GitHub בכל טעינה.
+ *      כך כל push של קלוד ל-GitHub מופיע אוטומטית, בלי העתק-הדבק ל-Apps Script.
+ *         GET  /exec                 -> דף ה-HTML של האפליקציה
  *
- * אחסון: PropertiesService (Script Properties), מחולק למקטעים כדי לעקוף
- * את מגבלת ה-9KB לכל ערך. אין צורך בגיליון או בקובץ נפרד.
+ *   2) שומר את הנתונים המשותפים (סנכרון בין מכשירים):
+ *         GET  /exec?api=state       -> { "data": <DB או null> }
+ *         POST /exec  body=JSON      -> { "ok": true }   (שומר { "data": <DB> })
+ *
+ * אחסון הנתונים: Script Properties, מחולק למקטעים (מעקף מגבלת 9KB). אין צורך
+ * בגיליון או בקובץ.
  *
  * פריסה: Deploy -> New deployment -> Web app
- *   Execute as: Me
- *   Who has access: Anyone           <-- חובה, אחרת הדפדפן יקבל 403
- * העתק/י את כתובת ה-/exec ל-CONFIG.GAS_URL בקובץ index.html.
+ *   Execute as:      Me
+ *   Who has access:  Anyone           <-- חובה, אחרת הדפדפן יקבל 403
+ * עדכון קוד מאוחר יותר: Deploy -> Manage deployments -> Edit -> New version
+ * (כך הכתובת נשארת זהה). את עדכוני האפליקציה עצמה לא צריך לפרוס מחדש —
+ * הם נמשכים מ-GitHub אוטומטית.
  */
+
+// מקור האפליקציה ב-GitHub (ענף main, repo ציבורי -> אין צורך בטוקן).
+var APP_URL = 'https://raw.githubusercontent.com/roeeiluz/obgyn-orientation/main/index.html';
 
 var PROP = PropertiesService.getScriptProperties();
 var COUNT_KEY = 'state_count';
@@ -23,7 +32,8 @@ var DATA_PREFIX = 'state_';
 var CHUNK = 9000; // < מגבלת 9KB לערך בודד ב-Script Properties
 
 function doGet(e) {
-  return respond(readState());
+  if (e && e.parameter && e.parameter.api === 'state') return respond(readState());
+  return serveApp();
 }
 
 function doPost(e) {
@@ -39,6 +49,24 @@ function doPost(e) {
   }
 }
 
+/* --- הגשת האפליקציה מ-GitHub --- */
+function serveApp() {
+  var html;
+  try {
+    var res = UrlFetchApp.fetch(APP_URL, { muteHttpExceptions: true });
+    html = (res.getResponseCode() === 200)
+      ? res.getContentText()
+      : '<!doctype html><meta charset="utf-8"><p dir="rtl">שגיאה בטעינת האפליקציה מ-GitHub (קוד ' + res.getResponseCode() + ').</p>';
+  } catch (err) {
+    html = '<!doctype html><meta charset="utf-8"><p dir="rtl">שגיאה בטעינת האפליקציה: ' + err + '</p>';
+  }
+  return HtmlService.createHtmlOutput(html)
+    .setTitle('אורינטציה OB/GYN')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+/* --- שמירת/טעינת מצב הנתונים --- */
 function readState() {
   var meta = PROP.getProperty(COUNT_KEY);
   if (!meta) return { data: null };
@@ -52,7 +80,6 @@ function readState() {
 }
 
 function writeState(str) {
-  // מחיקת המקטעים הישנים לפני כתיבה חדשה
   var old = parseInt(PROP.getProperty(COUNT_KEY) || '0', 10);
   for (var i = 0; i < old; i++) PROP.deleteProperty(DATA_PREFIX + i);
   var n = Math.ceil(str.length / CHUNK) || 1;
