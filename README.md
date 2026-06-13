@@ -34,7 +34,10 @@
 ## נתונים ושמירה
 
 - ברירת מחדל: הנתונים נשמרים מקומית בדפדפן (localStorage).
-- אופציונלי: סנכרון ענן חי בין מכשירים דרך **Supabase** — ראו `README_פריסה.md` ו-`supabase_schema.sql`. מילוי שני ערכים ב-`CONFIG` בראש הסקריפט מפעיל את הסנכרון; השארה ריקה = מצב מקומי.
+- אופציונלי: סנכרון ענן חי בין מכשירים. שתי דרכים (בוחרים אחת ב-`CONFIG` בראש הסקריפט):
+  - **Google Apps Script** — חינמי, ללא הרשמה לשירות נוסף (הכל בחשבון Google שלך). מדביקים כתובת `/exec` ב-`GAS_URL`. ראו `README_GoogleAppsScript.md` ו-`apps_script/Code.gs`.
+  - **Supabase** — סנכרון בזמן אמת (websockets). ממלאים `SUPABASE_URL` + `SUPABASE_KEY`. ראו `README_פריסה.md` ו-`supabase_schema.sql`.
+  - השארת הכל ריק = מצב מקומי.
 
 ---
 
@@ -53,7 +56,9 @@
 - `index.html` — האפליקציה (קובץ יחיד).
 - `README.md` — מסמך זה.
 - `README_פריסה.md` — מדריך פריסה מפורט (Supabase + GitHub + Netlify).
-- `supabase_schema.sql` — סכמת מסד הנתונים לסנכרון ענן.
+- `README_GoogleAppsScript.md` — מדריך סנכרון ענן חינמי דרך Google Apps Script.
+- `apps_script/Code.gs` — קוד ה-Backend להדבקה ב-Apps Script.
+- `supabase_schema.sql` — סכמת מסד הנתונים לסנכרון ענן (חלופת Supabase).
 
 ---
 
