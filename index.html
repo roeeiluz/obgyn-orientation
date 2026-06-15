@@ -253,12 +253,57 @@ a{color:inherit;text-decoration:none}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;font-size:13.5px;font-weight:600;padding:11px 20px;border-radius:999px;opacity:0;transition:.25s;z-index:90;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ---------- הישגים (entrustment) + פיקוח ---------- */
+.epa{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:17px 20px;margin-bottom:12px}
+.epa .eh{display:flex;align-items:flex-start;gap:10px;justify-content:space-between}
+.epa .et{font-weight:700;font-size:15px}
+.epa .ed{font-size:12.5px;color:var(--muted);margin-top:2px}
+.dom{font-size:10.5px;font-weight:700;color:var(--accent-d);background:var(--accent-soft);padding:2px 9px;border-radius:999px;white-space:nowrap}
+.evpick{display:flex;flex-wrap:wrap;gap:7px;max-height:150px;overflow:auto;padding:2px}
+.evopt{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;background:var(--bg);border:1px solid var(--line-2);border-radius:8px;padding:5px 9px;cursor:pointer}
+.ent-seg:focus-visible{outline:2px solid var(--accent-d);outline-offset:2px}
+.ent{display:flex;gap:5px;margin:13px 0 7px}
+.ent-seg{flex:1;min-width:0;height:38px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--faint);cursor:pointer;transition:.14s}
+.ent-seg:hover{border-color:var(--accent);color:var(--accent-d)}
+.ent-seg.fill{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-d)}
+.ent-seg.cur{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:var(--shadow)}
+.ent-seg.tgt{box-shadow:inset 0 0 0 2px var(--warn)}
+.ent-seg.lock{cursor:default;opacity:.85}
+.ent-meta{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;margin-top:4px}
+.ent-meta b{font-weight:700}
+.ent-meta .self{color:var(--accent-d)}.ent-meta .sup{color:var(--ink)}.ent-meta .tg{color:var(--warn)}
+.ent-bar{display:flex;align-items:center;gap:10px;margin-top:10px}
+.ent-bar .lbl{font-size:11.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+.fb-thread{margin-top:11px;border-top:1px dashed var(--line-2);padding-top:11px}
+.fb-item{background:#F4F6F6;border-radius:10px;padding:9px 12px;margin-bottom:7px;font-size:13px}
+.fb-item .by{font-weight:700;font-size:11.5px;color:var(--accent-d)}
+.fb-item .meta{font-size:10.5px;color:var(--faint);font-weight:600;margin-inline-start:6px}
+.fb-item .ln{margin-top:3px}.fb-item .ln b{color:var(--muted);font-weight:700}
+.fb-add{margin-top:9px;display:none}.fb-add.open{display:block}
+.fb-add textarea{width:100%;border:1px solid var(--line-2);border-radius:9px;padding:8px 10px;background:var(--bg);font-family:inherit;font-size:13px;min-height:42px;margin-top:5px}
+.flag{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
+.flag.gap{background:#FBEAE7;color:var(--danger)}
+.flag.stuck{background:var(--warn-soft);color:var(--warn)}
+.flag.nofb{background:#F1F4F4;color:var(--muted)}
+.flag.ready{background:var(--ok-soft);color:var(--ok)}
+.sup-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px;margin-bottom:12px}
+.sup-card .av{display:grid;place-items:center;border-radius:9px;flex-shrink:0;font-weight:700;overflow:hidden}
+.sup-card .sh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.sup-card .sh .nm{font-weight:700;font-size:15.5px}
+.sup-row{display:flex;align-items:center;gap:11px;padding:11px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.sup-row:last-child{border:none}
+.sup-row .rn{font-size:13.5px;font-weight:600;flex:1;min-width:130px}
+.sup-mini{display:flex;gap:3px;width:120px}
+.sup-mini i{flex:1;height:9px;border-radius:3px;background:#EEF1F1}
+.sup-mini i.on{background:var(--accent)}
+.sup-mini i.tg{box-shadow:inset 0 0 0 2px var(--warn)}
 .mob-nav{display:none}
 @media(max-width:840px){
   .layout{display:block}.nav{display:none}.main{padding:20px 16px 92px}.wrap{max-width:none}
   .g2,.g3{grid-template-columns:1fr}.mini{flex-direction:column}
   .cal{grid-template-columns:1fr;gap:7px}.dow{display:none}.cell{min-height:auto}
   .cell .dn{font-size:14px}.topbar{padding:11px 16px}
+  .ent-seg{height:42px;font-size:15px}.sup-mini{width:100%;order:3}.epa{padding:15px 16px}
   .mob-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--line);z-index:40;padding:7px 4px;justify-content:space-around}
   .mob-nav a{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;color:var(--muted);font-weight:600;padding:4px;cursor:pointer}
   .mob-nav a.active{color:var(--accent)}
@@ -292,12 +337,14 @@ a{color:inherit;text-decoration:none}
       <a data-s="cal" onclick="go('cal')"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg> תצוגת לוח חודשי</a>
       <div class="grp">המתמחה</div>
       <a data-s="train" onclick="go('train')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2l2.5 6.5L21 9l-5 4 1.5 7L12 16l-5.5 4L8 13 3 9l6.5-.5z"/></svg> יעדי הכשרה</a>
+      <a data-s="epas" onclick="go('epas')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 15a4 4 0 100-8 4 4 0 000 8zM8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></svg> הישגים ועצמאות</a>
       <a data-s="sources" onclick="go('sources')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2zM18 17H6"/></svg> למידה עיונית</a>
       <a data-s="goals" onclick="go('goals')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3L20 5M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"/></svg> הסמכה לתורן רביעי</a>
       <a data-s="tips" onclick="go('tips')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 00-4-10z"/></svg> טיפים קליניים</a>
       <a data-s="progress" onclick="go('progress')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l3-3 3 3 5-6"/></svg> התקדמות והערות</a>
       <a data-s="settings" onclick="go('settings')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 13a7.5 7.5 0 000-2l1.7-1.3-2-3.4-2 .8a7.5 7.5 0 00-1.7-1L15 4h-4l-.4 2.1a7.5 7.5 0 00-1.7 1l-2-.8-2 3.4L4.6 11a7.5 7.5 0 000 2l-1.7 1.3 2 3.4 2-.8a7.5 7.5 0 001.7 1L11 20h4l.4-2.1a7.5 7.5 0 001.7-1l2 .8 2-3.4z"/></svg> הגדרות וייצוא</a>
       <div class="grp mgr-only">מנהל תוכנית</div>
+      <a data-s="supervise" class="mgr-only" onclick="go('supervise')"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/></svg> פיקוח על הפעילות</a>
       <a data-s="onboard" class="mgr-only" onclick="go('onboard')"><svg class="icon" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg> צ'קליסט קליטה</a>
       <a data-s="admin" class="mgr-only" onclick="go('admin')"><svg class="icon" viewBox="0 0 24 24"><path d="M16 11a4 4 0 10-8 0M3 20a7 7 0 0118 0"/></svg> ניהול תוכנית</a>
     </nav>
@@ -305,6 +352,7 @@ a{color:inherit;text-decoration:none}
       <section class="screen" id="s-home"></section>
       <section class="screen" id="s-cal"></section>
       <section class="screen" id="s-train"></section>
+      <section class="screen" id="s-epas"></section>
       <section class="screen" id="s-sources"></section>
       <section class="screen" id="s-goals"></section>
       <section class="screen" id="s-tips"></section>
@@ -312,13 +360,14 @@ a{color:inherit;text-decoration:none}
       <section class="screen" id="s-settings"></section>
       <section class="screen" id="s-onboard"></section>
       <section class="screen" id="s-admin"></section>
+      <section class="screen" id="s-supervise"></section>
     </div></main>
   </div>
   <nav class="mob-nav">
     <a data-s="home" onclick="go('home')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg>בית</a>
     <a data-s="cal" onclick="go('cal')"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg>לוח</a>
     <a data-s="train" onclick="go('train')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 2l2.5 6.5L21 9l-5 4 1.5 7L12 16l-5.5 4L8 13 3 9z"/></svg>הכשרה</a>
-    <a data-s="sources" onclick="go('sources')"><svg class="icon" viewBox="0 0 24 24"><path d="M4 5a2 2 0 012-2h12v18H6a2 2 0 01-2-2z"/></svg>למידה</a>
+    <a data-s="epas" onclick="go('epas')"><svg class="icon" viewBox="0 0 24 24"><path d="M12 15a4 4 0 100-8 4 4 0 000 8zM8.5 13.5L7 22l5-3 5 3-1.5-8.5"/></svg>הישגים</a>
     <a data-s="progress" onclick="go('progress')"><svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l3-3 3 3 5-6"/></svg>התקדמות</a>
     <a onclick="openMore()"><svg class="icon" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/></svg>עוד</a>
   </nav>
@@ -365,13 +414,33 @@ var CONFIG={
   SUPABASE_URL:'', SUPABASE_KEY:''
 };
 var KEY='orientation_app_v2';
-var VERSION='3.6';  /* מתעדכן בכל שינוי */
+var VERSION='4.1';  /* מתעדכן בכל שינוי */
 var HE_DOW=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 var HE_MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 var STATIONS=['אדמיניסטרציה ובטיחות','חדר לידה — צמוד מיילדת','חדר לידה — צמוד רופא בכיר','חדר ניתוח','מכון US','יולדות א׳ (HR)','יולדות ב׳','חדר קבלה','השלמות / מבחן'];
 var SKILLS=['אוריינטציה וקליטה','עבודת מיילדת','עבודת רופא חדר לידה','עבודת רופא מיון','אולטרסאונד / הערכת משקל','תפירה','צפייה בניתוח קיסרי','עוזר ראשון בקיסרי','מבחן פרוטוקולים'];
 var TYPES=[['protocol','פרוטוקול'],['memo','נוהל / פק״ל'],['position','נייר עמדה'],['textbook','ספר לימוד'],['kit','ערכת הדרכה']];
 var LEVELS=[['full','שליטה מלאה'],['know','רמת ידיעה'],['read','לקריאה']];
+/* סולם אמון (entrustment) — 0=טרם הוערך, 1..5 */
+var ENT=[
+  {s:'—',l:'טרם הוערך'},
+  {s:'צופה',l:'צופה בלבד'},
+  {s:'פיקוח ישיר',l:'מבצע בפיקוח ישיר (בכיר בחדר)'},
+  {s:'פיקוח עקיף',l:'מבצע בפיקוח עקיף (בכיר זמין)'},
+  {s:'עצמאי',l:'מבצע עצמאית'},
+  {s:'מלמד',l:'מבצע ומלמד זוטרים'}
+];
+var DOMAINS={ld:'חדר לידה',or:'חדר ניתוח',er:'מיון ומחלקה',us:'מכון US'};
+function entLab(n){return (ENT[n]||ENT[0]).l;}
+function epaSeed(){return [
+  {id:'e_labor',dom:'ld',name:'ניהול יולדת בלידה רגילה',desc:'קבלה, מעקב התקדמות וזיהוי חריגות בלידה רגילה',target:3,ev:{counts:['c_birth_obs','c_birth_recv'],skills:['k_monitor']}},
+  {id:'e_suture',dom:'ld',name:'תפירת קרע/אפיזיוטומיה דרגה 1–2',desc:'זיהוי דרגת הקרע ותפירה בפיקוח',target:3,ev:{counts:['c_suture_obs','c_suture_do'],skills:['k_suture']}},
+  {id:'e_pph',dom:'ld',name:'זיהוי וניהול ראשוני של דימום לאחר לידה (PPH)',desc:'איתור מוקדם, ערכת חירום ותרופות',target:2,ev:{counts:[],skills:['k_meds','k_tools']}},
+  {id:'e_cs',dom:'or',name:'עוזר ראשון בניתוח קיסרי',desc:'הכרת שלבי הניתוח ועזרה פעילה',target:2,ev:{counts:['c_cs','c_first_assist'],skills:['k_first']}},
+  {id:'e_present',dom:'er',name:'אנמנזה, בדיקה והצגת מטופלת',desc:'נטילת אנמנזה, בדיקה גופנית-גינקולוגית והצגה מסודרת לבכיר',target:3,ev:{counts:['c_adm'],skills:['k_anam','k_exam']}},
+  {id:'e_admdis',dom:'er',name:'ניהול קבלה ושחרור',desc:'קבלה ושחרור מטופלת והצגתם לבכיר',target:3,ev:{counts:['c_adm','c_dis'],skills:[]}},
+  {id:'e_us',dom:'us',name:'הערכת משקל ובדיקת US בסיסית',desc:'מיקום, חיוּת, הערכת משקל ופרופיל ביופיזי',target:2,ev:{counts:['c_weight','c_bpp'],skills:['k_weight']}}
+];}
 function tLabel(t){for(var i=0;i<TYPES.length;i++)if(TYPES[i][0]===t)return TYPES[i][1];return t;}
 function lLabel(l){for(var i=0;i<LEVELS.length;i++)if(LEVELS[i][0]===l)return LEVELS[i][1];return l;}
 
@@ -559,13 +628,14 @@ function defaults(){
     ],
     calendar:[],
     archive:[],
+    epas:epaSeed(),
     principles:defaultPrinciples(),
     perResident:{}
   };
   var allIds=data.residents.map(function(r){return r.id;});
   data.calendar=genBlankPlan(data.cohort.startDate,allIds);
   data.residents.forEach(function(r){
-    data.perResident[r.id]={skillStatus:{},countProgress:{},srcMastery:{},certManual:{},examScore:'',dailyNotes:[],mgrNotes:[],feedback:{submitted:false,text:''},onboardDone:{},sourceNotes:{}};
+    data.perResident[r.id]={skillStatus:{},countProgress:{},srcMastery:{},certManual:{},examScore:'',dailyNotes:[],mgrNotes:[],feedback:{submitted:false,text:''},onboardDone:{},sourceNotes:{},epa:{}};
   });
   return data;
 }
@@ -587,6 +657,9 @@ function migrate(){
   if(!DB.principles||!DB.principles.length||!DB.principles.some(function(p){return p.kind==='rotation'||p.kind==='shared';}))DB.principles=defaultPrinciples();
   (DB.calendar||[]).forEach(function(d){if(!d.assign){d.assign={};(d.residents||[]).forEach(function(id){d.assign[id]={station:d.station||'',skill:d.skill||'',team:d.team||'',evening:!!d.evening};});}if(!d.eval||typeof d.eval==='string')d.eval={};});
   Object.keys(DB.perResident||{}).forEach(function(k){if(DB.perResident[k]&&!DB.perResident[k].mgrNotes)DB.perResident[k].mgrNotes=[];});
+  // הישגים (EPAs): זריעה אם חסר, ומילוי שדה epa לכל מתמחה (תאימות אחורה)
+  if(!DB.epas||!DB.epas.length)DB.epas=epaSeed();
+  Object.keys(DB.perResident||{}).forEach(function(k){if(DB.perResident[k]&&!DB.perResident[k].epa)DB.perResident[k].epa={};});
   if(!DB.calendar||!DB.calendar.length){DB.calendar=genPlan(DB.cohort.startDate);var ids=DB.residents.map(function(r){return r.id;});DB.calendar.forEach(function(d){d.residents=ids.slice();});}
   DB.calendar.forEach(function(d){if(!d.residents)d.residents=DB.residents.map(function(r){return r.id;});});
   // merge in newly-seeded sources (e.g. position papers) by title, without wiping data
@@ -678,7 +751,7 @@ function trainPct(){return Math.round((countPct()+skillPct()+masterPct())/3);}
 
 /* ============================ RENDER ============================ */
 function render(){
-  var s=ST.screen,m={home:renderHome,cal:renderCal,train:renderTrain,sources:renderSources,goals:renderCert,tips:renderTips,progress:renderProgress,settings:renderSettings,onboard:renderOnboard,admin:renderAdmin};
+  var s=ST.screen,m={home:renderHome,cal:renderCal,train:renderTrain,epas:renderEpas,sources:renderSources,goals:renderCert,tips:renderTips,progress:renderProgress,settings:renderSettings,onboard:renderOnboard,admin:renderAdmin,supervise:renderSupervise};
   if(m[s])m[s]();
 }
 function resSwitch(){
@@ -703,8 +776,9 @@ function renderHome(){
     else{html+='<div class="cl">';pend.forEach(function(p){var rr=findRes(p.rid),dt=parseISO(p.n.date);html+='<div class="cl-row"><div class="cl-h"><span class="cl-n"><span class="rchip '+rr.color+'" style="display:inline-grid;vertical-align:middle;margin-inline-end:8px">'+esc(initials(rr))+'</span>'+esc(p.name)+'</span><span class="cl-c">'+fmtDMY(dt)+'</span></div><div style="font-size:14px;margin-top:4px">'+esc(p.n.text)+'</div><button class="ttool" style="margin-top:9px" onclick="markNoteRead(\''+p.rid+'\','+p.i+')">סמן כנקרא ← לתיק המתמחה</button></div>';});html+='</div>';}
   }
   if(ST.role==='mgr'){
-    html+='<div class="sec">מתמחי המחזור <span class="ln"></span></div><div class="cl">';
-    cohortResidents().forEach(function(rr){var tp=progressFor(rr.id);var oc=onCallMissing(rr.id);html+='<div class="cl-row" style="cursor:pointer" onclick="switchRes(\''+rr.id+'\')"><div class="cl-h"><span class="cl-n"><span class="rchip '+rr.color+'" style="display:inline-grid;vertical-align:middle;margin-inline-end:8px">'+esc(initials(rr))+'</span>'+esc(rr.name)+(rr.id===ST.rid?' · נבחר':'')+'</span><span class="cl-c">'+tp+'%</span></div><div class="bar" style="margin-top:8px"><i style="width:'+tp+'%"></i></div>'+(oc.length?'<div style="font-size:12px;color:var(--warn);font-weight:600;margin-top:6px">⚠ חסר תורן ערב בשבוע '+oc.join(', ')+'</div>':'')+'</div>';});
+    var totFlags=0;cohortResidents().forEach(function(rr){DB.epas.forEach(function(e){totFlags+=epaFlagList(rr.id,e).length;});});
+    html+='<div class="sec">מתמחי המחזור <span class="ln"></span>'+(totFlags?'<button class="ttool" onclick="go(\'supervise\')">פיקוח · '+totFlags+' דגלים →</button>':'<button class="ttool" onclick="go(\'supervise\')">פיקוח →</button>')+'</div><div class="cl">';
+    cohortResidents().forEach(function(rr){var tp=progressFor(rr.id);var oc=onCallMissing(rr.id);var rd=epaReadiness(rr.id);var fc=0;DB.epas.forEach(function(e){fc+=epaFlagList(rr.id,e).length;});html+='<div class="cl-row" style="cursor:pointer" onclick="switchRes(\''+rr.id+'\')"><div class="cl-h"><span class="cl-n"><span class="rchip '+rr.color+'" style="display:inline-grid;vertical-align:middle;margin-inline-end:8px">'+esc(initials(rr))+'</span>'+esc(rr.name)+(rr.id===ST.rid?' · נבחר':'')+'</span><span class="cl-c">'+tp+'%</span></div><div class="bar" style="margin-top:8px"><i style="width:'+tp+'%"></i></div><div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;color:var(--muted);font-weight:600;margin-top:7px"><span>עצמאות '+rd.pct+'% · '+rd.atTarget+'/'+DB.epas.length+' ביעד</span>'+(fc?'<span style="color:var(--warn)">⚑ '+fc+' דגלים</span>':'')+'</div>'+(oc.length?'<div style="font-size:12px;color:var(--warn);font-weight:600;margin-top:6px">⚠ חסר תורן ערב בשבוע '+oc.join(', ')+'</div>':'')+'</div>';});
     html+='</div>';
     html+='<div class="card" style="margin-top:12px"><label style="font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px">הערה ל'+esc(curRes().name)+' (תופיע אצלה ב"בית")</label><textarea id="mgrNoteIn" style="width:100%;border:1px solid var(--line-2);border-radius:10px;padding:10px;min-height:54px;background:var(--bg)" placeholder="כתוב/י הערה למתמחה..."></textarea><button class="btn btn-accent btn-sm" style="margin-top:8px" onclick="addMgrNote()">שלח למתמחה</button></div>';
   }
@@ -713,6 +787,9 @@ function renderHome(){
     if(miss.length)html+='<div class="card" style="border-color:var(--warn);background:var(--warn-soft);color:var(--warn);margin-bottom:6px;font-weight:600">⚠ חסר שיבוץ תורן ערב בשבוע '+miss.join(', ')+'. שבץ בתצוגת הלוח החודשי (לחיצה על "+ שבץ תורן ערב" ביום שלך).</div>';
     var mn=(pr().mgrNotes||[]).slice().sort(function(a,b){return a.date<b.date?1:-1;});
     if(mn.length){html+='<div class="sec">הערות ממנהל התוכנית</div><div class="card" style="padding:6px 22px">';mn.forEach(function(n){html+='<div class="note-day"><span class="d">'+fmtDMY(parseISO(n.date))+'</span><span class="t">'+esc(n.text)+'</span></div>';});html+='</div>';}
+    var rdh=epaReadiness(ST.rid);var nextUp=[];DB.epas.forEach(function(e){if((epaData(ST.rid,e.id).sup||0)<e.target)nextUp.push(e);});
+    html+='<div class="sec">שער עצמאות <span class="ln"></span><button class="ttool" onclick="go(\'epas\')">להישגים →</button></div>';
+    html+='<div class="card" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap"><div style="text-align:center;min-width:74px"><div style="font-size:30px;font-weight:700;color:var(--accent-d);line-height:1.1">'+rdh.pct+'%</div><div style="font-size:12px;color:var(--muted);font-weight:600">לעצמאות</div></div><div style="flex:1;min-width:150px"><div class="bar"><i style="width:'+rdh.pct+'%"></i></div><div style="font-size:13px;color:var(--muted);margin-top:7px">'+rdh.atTarget+'/'+DB.epas.length+' יכולות הגיעו ליעד'+(nextUp.length?' · בפוקוס הבא: '+esc(nextUp[0].name):' · כל היעדים הושגו 🎉')+'</div></div></div>';
   }
   html+='<div class="grid g2"><div class="today"><div class="lbl">התוכנית של היום</div><div class="dt">'+(today?HE_DOW[parseISO(today.date).getDay()]+', '+parseISO(today.date).getDate()+'.'+(parseISO(today.date).getMonth()+1):'אין יום מתוכנן להיום')+'</div>';
   if(today){var ts=slot(today,ST.rid);html+=row('תחנה',ts.station||'—')+row('מיומנות',ts.skill||'—')+row('משובץ עם',ts.team||'—');if(today.academic)html+=row('אקדמי',today.academic);if(today.special)html+='<div class="today-row"><span class="k">מיוחד</span><span class="v" style="color:var(--warn)">'+esc(today.special)+'</span></div>';if(today.evening)html+=row('ערב','תורן ערב ללימוד (עד 21:00)');}
@@ -946,6 +1023,108 @@ function cycleSkill(id){if(isLocked()){toast('התוכנית נעולה');return
 function tickCount(cid,n){if(isLocked()){toast('התוכנית נעולה');return;}var p=pr();var cur=p.countProgress[cid]||0;p.countProgress[cid]=(cur===n)?n-1:n;save();renderTrain();}
 function delAid(id){DB.aids=DB.aids.filter(function(a){return a.id!==id;});save();renderTrain();}
 
+/* ---------- הישגים (EPAs / entrustment) + משוב + פיקוח ---------- */
+var epaFbOpen={};
+function epaData(rid,id){var pe=DB.perResident[rid];if(!pe)return {self:0,sup:0,fb:[]};if(!pe.epa)pe.epa={};if(!pe.epa[id])pe.epa[id]={self:0,sup:0,fb:[]};return pe.epa[id];}
+function epaEvidencePct(rid,e){
+  var got=0,need=0,pe=DB.perResident[rid]||{countProgress:{},skillStatus:{}};
+  (e.ev.counts||[]).forEach(function(cid){var c=DB.counts.find(function(x){return x.id===cid;});if(!c)return;need+=c.target;got+=Math.min(pe.countProgress[cid]||0,c.target);});
+  (e.ev.skills||[]).forEach(function(kid){need+=2;got+=Math.min(pe.skillStatus[kid]||0,2);});
+  return need?Math.round(100*got/need):0;
+}
+function epaReadiness(rid){
+  var atTarget=0,sumCur=0,sumTgt=0,sumEv=0;
+  DB.epas.forEach(function(e){var sup=epaData(rid,e.id).sup||0;if(sup>=e.target)atTarget++;sumCur+=Math.min(sup,e.target);sumTgt+=e.target;sumEv+=epaEvidencePct(rid,e);});
+  return {atTarget:atTarget,pct:sumTgt?Math.round(100*sumCur/sumTgt):0,evid:DB.epas.length?Math.round(sumEv/DB.epas.length):0};
+}
+function epaFlagList(rid,e){
+  var d=epaData(rid,e.id),self=d.self||0,sup=d.sup||0,ev=epaEvidencePct(rid,e),fb=d.fb||[],out=[];
+  if(self&&sup&&Math.abs(self-sup)>=2)out.push('<span class="flag gap">⚠ פער הערכה</span>');
+  if(ev>=80&&sup<e.target)out.push('<span class="flag stuck">⏳ ראיות גבוהות, אמון מתחת ליעד</span>');
+  if(sup>0&&!fb.length)out.push('<span class="flag nofb">💬 דורג בלי משוב</span>');
+  if(ev>=100&&self>=e.target&&sup<e.target)out.push('<span class="flag ready">↑ מועמד לשדרוג</span>');
+  return out;
+}
+function setEpa(id,which,lvl){
+  if(isLocked()){toast('התוכנית נעולה');return;}
+  if(which==='sup'&&ST.role!=='mgr'){toast('דירוג מפקח — מנהל בלבד');return;}
+  if(which==='self'&&ST.role!=='res')return;
+  var d=epaData(ST.rid,id);d[which]=(d[which]===lvl)?0:lvl;save();renderEpas();
+}
+function toggleEpaFb(id){epaFbOpen[id]=!epaFbOpen[id];renderEpas();}
+function addEpaFb(id){
+  var w=document.getElementById('fbw-'+id),im=document.getElementById('fbi-'+id);
+  var well=(w?w.value:'').trim(),imp=(im?im.value:'').trim();
+  if(!well&&!imp){toast('כתוב משוב לפני שמירה');return;}
+  var d=epaData(ST.rid,id);if(!d.fb)d.fb=[];
+  d.fb.push({by:ST.role==='mgr'?'מנהל':curRes().name,role:ST.role,level:ST.role==='mgr'?(d.sup||0):(d.self||0),well:well,improve:imp,date:iso(new Date())});
+  epaFbOpen[id]=false;save();renderEpas();toast('המשוב נשמר');
+}
+function entLadder(id,which,cur,target){
+  var h='<div class="ent" role="group" aria-label="סולם אמון — בחר/י דרגה">';
+  for(var i=1;i<=5;i++){
+    var cls='ent-seg'+(i<=cur?' fill':'')+(i===cur?' cur':'')+(i===target?' tgt':'')+(isLocked()?' lock':'');
+    var lab=esc(entLab(i))+(i===target?' — יעד':'');
+    var attrs=' role="button" aria-label="'+lab+'" aria-pressed="'+(i===cur?'true':'false')+'" title="'+esc(entLab(i))+'"';
+    if(!isLocked())attrs+=' tabindex="0" onclick="setEpa(\''+id+'\',\''+which+'\','+i+')" onkeydown="if(event.key===\'Enter\'||event.key===\' \'){event.preventDefault();setEpa(\''+id+'\',\''+which+'\','+i+');}"';
+    h+='<div class="'+cls+'"'+attrs+'>'+i+'</div>';
+  }
+  return h+'</div>';
+}
+function renderEpas(){
+  var html=resSwitch(),isMgr=ST.role==='mgr';
+  html+='<div class="head"><div class="title">הישגים ושער עצמאות</div>'+
+    '<div class="subtitle res-only">לכל יכולת ליבה — דרג/י את עצמך בסולם האמון (1=צופה … 5=מלמד). המפקח מדרג במקביל, וכאן מתנהל המשוב.</div>'+
+    '<div class="subtitle mgr-only">דרג את רמת האמון של המתמחה לכל יכולת והוסף משוב צמוד. היעד מסומן במסגרת כתומה.</div></div>';
+  if(isLocked())html+='<div class="note-prev" style="background:var(--warn-soft);color:var(--warn);margin-bottom:14px">התוכנית נעולה להערכה — הדירוג מושבת.</div>';
+  var rd=epaReadiness(ST.rid);
+  html+='<div class="grid g3"><div class="stat"><div class="n">'+rd.pct+'%</div><div class="l">התקדמות לעצמאות</div></div>'+
+    '<div class="stat"><div class="n">'+rd.atTarget+'/'+DB.epas.length+'</div><div class="l">יכולות שהגיעו ליעד</div></div>'+
+    '<div class="stat"><div class="n">'+rd.evid+'%</div><div class="l">ראיות התנסות</div></div></div>';
+  Object.keys(DOMAINS).forEach(function(dk){
+    var list=DB.epas.filter(function(e){return e.dom===dk;});if(!list.length&&!isMgr)return;
+    html+='<div class="sec">'+esc(DOMAINS[dk])+'<span class="ln"></span>'+(isMgr&&!isLocked()?'<button class="ttool" onclick="addEpa(\''+dk+'\')">+ הוסף יכולת</button>':'')+'</div>';
+    list.forEach(function(e){
+      var d=epaData(ST.rid,e.id),self=d.self||0,sup=d.sup||0,ev=epaEvidencePct(ST.rid,e),which=isMgr?'sup':'self',cur=isMgr?sup:self;
+      html+='<div class="epa"><div class="eh"><div><div class="et">'+esc(e.name)+'</div><div class="ed">'+esc(e.desc)+'</div></div><span style="display:flex;align-items:center;gap:8px;flex-shrink:0"><span class="dom">יעד: '+esc(ENT[e.target].s)+'</span>'+(isMgr&&!isLocked()?'<button class="ttool" onclick="editEpa(\''+e.id+'\')">✎</button>':'')+'</span></div>';
+      html+='<div class="ent-bar"><span class="lbl">'+(isMgr?'דירוג מפקח':'דירוג עצמי')+' →</span></div>'+entLadder(e.id,which,cur,e.target);
+      html+='<div class="ent-meta"><span class="self">עצמי: <b>'+esc(ENT[self].s)+'</b></span><span class="sup">מפקח: <b>'+esc(ENT[sup].s)+'</b></span><span class="tg">יעד: <b>'+esc(ENT[e.target].s)+'</b></span><span style="color:var(--muted)">ראיות: <b>'+ev+'%</b></span></div>';
+      var fl=epaFlagList(ST.rid,e);if(fl.length)html+='<div style="margin-top:9px;display:flex;gap:6px;flex-wrap:wrap">'+fl.join('')+'</div>';
+      var fb=d.fb||[];
+      html+='<div class="fb-thread">';
+      if(fb.length)fb.slice().reverse().forEach(function(f){html+='<div class="fb-item"><span class="by">'+esc(f.by)+'</span><span class="meta">'+fmtDMY(parseISO(f.date))+' · '+esc(entLab(f.level))+'</span>'+(f.well?'<div class="ln"><b>חוזקה:</b> '+esc(f.well)+'</div>':'')+(f.improve?'<div class="ln"><b>לשיפור:</b> '+esc(f.improve)+'</div>':'')+'</div>';});
+      else html+='<div style="font-size:12.5px;color:var(--muted)">אין עדיין משוב על יכולת זו.</div>';
+      html+='<button class="ttool" style="margin-top:4px" onclick="toggleEpaFb(\''+e.id+'\')">'+(epaFbOpen[e.id]?'בטל':'➕ הוסף משוב')+'</button>';
+      html+='<div class="fb-add'+(epaFbOpen[e.id]?' open':'')+'"><textarea id="fbw-'+e.id+'" placeholder="חוזקה / מה עבד טוב"></textarea><textarea id="fbi-'+e.id+'" placeholder="נקודה לשיפור / צעד אחד קדימה"></textarea><button class="btn btn-accent btn-sm" style="margin-top:7px" onclick="addEpaFb(\''+e.id+'\')">שמור משוב</button></div>';
+      html+='</div></div>';
+    });
+  });
+  document.getElementById('s-epas').innerHTML=html;
+}
+function renderSupervise(){
+  var html='<div class="head"><div class="title">פיקוח על הפעילות</div><div class="subtitle">מבט-על על כל המתמחים: מוכנוּת לעצמאות, יכולות תקועות ופערי הערכה. הסרגל מציג רמת אמון; מסגרת כתומה = היעד.</div></div>';
+  var ress=cohortResidents();
+  if(!ress.length){document.getElementById('s-supervise').innerHTML=html+'<div class="card" style="color:var(--muted)">אין מתמחים פעילים.</div>';return;}
+  var totalFlags=0;ress.forEach(function(r){DB.epas.forEach(function(e){totalFlags+=epaFlagList(r.id,e).length;});});
+  ress.forEach(function(r){
+    var rd=epaReadiness(r.id);
+    html+='<div class="sup-card"><div class="sh"><span class="av '+r.color+'" style="width:30px;height:30px;font-size:12px">'+esc(initials(r))+'</span><span class="nm">'+esc(r.name)+'</span>'+
+      '<span class="badge" style="background:var(--accent-soft);color:var(--accent-d)">'+rd.pct+'% לעצמאות</span>'+
+      '<span class="badge" style="background:#F1F4F4;color:var(--muted)">'+rd.atTarget+'/'+DB.epas.length+' ביעד</span>'+
+      '<button class="ttool" style="margin-inline-start:auto" onclick="switchRes(\''+r.id+'\');go(\'epas\')">פתח הישגים →</button></div>';
+    DB.epas.forEach(function(e){
+      var sup=epaData(r.id,e.id).sup||0,ev=epaEvidencePct(r.id,e),fl=epaFlagList(r.id,e);
+      var mini='<div class="sup-mini">';for(var i=1;i<=5;i++)mini+='<i class="'+(i<=sup?'on':'')+(i===e.target?' tg':'')+'"></i>';mini+='</div>';
+      html+='<div class="sup-row"><span class="rn">'+esc(e.name)+'</span>'+mini+
+        '<span style="font-size:11.5px;color:var(--muted);font-weight:600;white-space:nowrap">'+esc(ENT[sup].s)+' · ראיות '+ev+'%</span>'+
+        (fl.length?'<span style="display:flex;gap:5px;flex-wrap:wrap">'+fl.join('')+'</span>':'')+'</div>';
+    });
+    html+='</div>';
+  });
+  html+='<div class="card" style="color:var(--muted);font-size:12.5px">סה״כ '+totalFlags+' דגלים פתוחים · ⚠ פער ≥2 דרגות בין הערכה עצמית למפקח · ⏳ ראיות גבוהות אך אמון מתחת ליעד · 💬 דורג ללא משוב · ↑ מועמד לשדרוג אמון.</div>';
+  document.getElementById('s-supervise').innerHTML=html;
+}
+
 /* ---------- SOURCES (type ✕ level, mastery, dual filter) ---------- */
 var fType='all',fLevel='all';
 function setFType(v){fType=v;renderSources();}
@@ -1068,6 +1247,8 @@ function buildDossier(rid){
   L.push('== מיומנויות ==');DB.skills.forEach(function(k){L.push('• '+k.name+': '+['לא התחיל','בתהליך','נרכש'][skillStat(k.id)]);});
   L.push('');L.push('== התנסות מודדת ==');DB.counts.forEach(function(c){L.push('• '+c.name+': '+Math.min(cnt(c.id),c.target)+' / '+c.target);});
   L.push('');L.push('== שליטה בחומר ==');L.push('סה״כ נשלט: '+masterPct()+'%');
+  L.push('');L.push('== שער עצמאות (הישגים) ==');var rdz=epaReadiness(rid);L.push('התקדמות לעצמאות: '+rdz.pct+'% · '+rdz.atTarget+'/'+(DB.epas||[]).length+' יכולות ביעד');
+  (DB.epas||[]).forEach(function(e){var d=epaData(rid,e.id);L.push('• '+e.name+': מפקח '+ENT[d.sup||0].s+' / יעד '+ENT[e.target].s+' (עצמי '+ENT[d.self||0].s+', ראיות '+epaEvidencePct(rid,e)+'%)');});
   L.push('');L.push('== הסמכה לתורן רביעי ==');DB.certGoals.forEach(function(g){var d;if(g.code==='exam')d=(parseInt(p.examScore)||0)>=70;else if(g.manual)d=!!p.certManual[g.id];else d=certAuto(g.code).done;L.push('['+(d?'V':' ')+'] '+g.name);});L.push('ציון מבחן: '+(p.examScore||'—'));
   L.push('');L.push('== הערות יומיות ==');p.dailyNotes.forEach(function(n){L.push(n.date+': '+n.text);});
   L.push('');L.push('== משוב סיום ==');L.push(p.feedback.submitted?p.feedback.text:'(טרם נשלח)');
@@ -1092,6 +1273,13 @@ function buildDossierHTML(rid){
   h+='<h2>מיומנויות קליניות</h2><table>';DB.skills.forEach(function(k){var s=skillStat(k.id);h+='<tr><td>'+e2(k.name)+'</td><td style="width:120px"><span class="badge" style="background:'+stCol[s]+'">'+stTxt[s]+'</span></td></tr>';});h+='</table>';
   h+='<h2>התנסות מודדת</h2><table><tr><th>פעילות</th><th style="width:90px">ביצוע</th></tr>';DB.counts.forEach(function(c){h+='<tr><td>'+e2(c.name)+'</td><td>'+Math.min(cnt(c.id),c.target)+' / '+c.target+'</td></tr>';});h+='</table>';
   h+='<h2>שליטה בחומר העיוני</h2><table>';[['פרוטוקולי חובה',function(s){return s.type==='protocol'&&s.level==='full';}],['נהלים / פק״ל',function(s){return s.type==='memo'&&s.level==='full';}],['ערכות הדרכה',function(s){return s.type==='kit';}],['פרקי GABBE',function(s){return s.type==='textbook';}],['ניירות עמדה / רמת ידיעה',function(s){return s.level==='know';}]].forEach(function(rr){var st=srcStats(rr[1]);if(!st.t)return;h+='<tr><td>'+e2(rr[0])+'</td><td style="width:90px">'+st.m+' / '+st.t+'</td></tr>';});h+='</table>';
+  h+='<h2>שער עצמאות — הישגים מבוססי-אמון</h2>';var rdz=epaReadiness(rid);
+  h+='<div class="sub" style="margin-bottom:8px">התקדמות לעצמאות: <b style="color:#0a5a54">'+rdz.pct+'%</b> · '+rdz.atTarget+'/'+(DB.epas||[]).length+' יכולות הגיעו ליעד · סולם אמון: 1 צופה · 2 פיקוח ישיר · 3 פיקוח עקיף · 4 עצמאי · 5 מלמד</div>';
+  h+='<table><tr><th>יכולת ליבה (EPA)</th><th style="width:80px">ראיות</th><th style="width:110px">דירוג מפקח</th><th style="width:100px">יעד</th><th style="width:54px"></th></tr>';
+  (DB.epas||[]).forEach(function(e){var d=epaData(rid,e.id),sup=d.sup||0,done=sup>=e.target;h+='<tr><td>'+e2(e.name)+'</td><td>'+epaEvidencePct(rid,e)+'%</td><td>'+e2(ENT[sup].s)+'</td><td>'+e2(ENT[e.target].s)+'</td><td style="text-align:center" class="'+(done?'ok':'no')+'">'+(done?'✓':'—')+'</td></tr>';});
+  h+='</table>';
+  var fbAll=[];(DB.epas||[]).forEach(function(e){(epaData(rid,e.id).fb||[]).forEach(function(f){fbAll.push({e:e.name,f:f});});});
+  if(fbAll.length){h+='<h3 style="font-size:14.5px;color:#0a5a54;margin:16px 0 6px">משוב צמוד-יכולת</h3>';fbAll.sort(function(a,b){return a.f.date<b.f.date?-1:1;}).forEach(function(x){h+='<div class="note"><span class="d">'+fmtDMY(parseISO(x.f.date))+' · '+e2(x.e)+' · '+e2(entLab(x.f.level))+'</span>'+(x.f.well?'<b>חוזקה:</b> '+e2(x.f.well)+'&nbsp;&nbsp;':'')+(x.f.improve?'<b>לשיפור:</b> '+e2(x.f.improve):'')+'</div>';});}
   h+='<h2>הסמכה לתורן רביעי</h2><table>';DB.certGoals.forEach(function(g){var d;if(g.code==='exam')d=(parseInt(p.examScore)||0)>=70;else if(g.manual)d=!!p.certManual[g.id];else d=certAuto(g.code).done;h+='<tr><td>'+e2(g.name)+'</td><td style="width:60px" class="'+(d?'ok':'no')+'">'+(d?'✓':'—')+'</td></tr>';});h+='</table><div class="sub" style="margin-top:6px">ציון מבחן פרוטוקולים: '+(p.examScore||'—')+'</div>';
   if(p.dailyNotes&&p.dailyNotes.length){h+='<h2>הערות יומיות של המתמחה</h2>';p.dailyNotes.slice().sort(function(a,b){return a.date<b.date?-1:1;}).forEach(function(n){h+='<div class="note"><span class="d">'+fmtDMY(parseISO(n.date))+'</span>'+e2(n.text)+'</div>';});}
   if(p.mgrNotes&&p.mgrNotes.length){h+='<h2>הערות מנהל התוכנית למתמחה</h2>';p.mgrNotes.slice().sort(function(a,b){return a.date<b.date?-1:1;}).forEach(function(n){h+='<div class="note"><span class="d">'+fmtDMY(parseISO(n.date))+'</span>'+e2(n.text)+'</div>';});}
@@ -1167,6 +1355,19 @@ function editSkill(id){var k=DB.skills.find(function(x){return x.id===id;});open
 function addCount(){openEdit('שורת התנסות חדשה',fld('e_n','שם','')+fld('e_t','כמות נדרשת','5'),function(){if(!val('e_n'))return;DB.counts.push({id:uid('c'),name:val('e_n'),target:Math.max(1,parseInt(val('e_t'))||1)});save();closeModal('editModal');renderTrain();});}
 function editCount(id){var c=DB.counts.find(function(x){return x.id===id;});openEdit('עריכת שורה',fld('e_n','שם',c.name)+fld('e_t','כמות נדרשת',c.target)+'<button class="btn btn-sm" style="color:var(--danger)" onclick="DB.counts=DB.counts.filter(function(x){return x.id!==\''+id+'\';});save();closeModal(\'editModal\');renderTrain();">מחק</button>',function(){c.name=val('e_n');c.target=Math.max(1,parseInt(val('e_t'))||1);save();closeModal('editModal');renderTrain();});}
 function addTip(){openEdit('טיפ חדש','<div class="fld"><label>הטיפ</label><textarea id="e_x" style="width:100%;min-height:70px;border:1px solid var(--line-2);border-radius:10px;padding:9px;background:var(--bg)"></textarea></div>',function(){var v=val('e_x');if(!v)return;DB.tips.push({id:uid('t'),text:v});save();closeModal('editModal');renderTips();});}
+/* ---- EPA CRUD (manager) ---- */
+function domSel(id,v){return '<div class="fld"><label>תחום</label><select id="'+id+'">'+Object.keys(DOMAINS).map(function(k){return '<option value="'+k+'"'+(v===k?' selected':'')+'>'+esc(DOMAINS[k])+'</option>';}).join('')+'</select></div>';}
+function targetSel(id,v){var h='<div class="fld"><label>יעד עצמאות</label><select id="'+id+'">';for(var i=1;i<=5;i++)h+='<option value="'+i+'"'+(Number(v)===i?' selected':'')+'>'+i+' — '+esc(ENT[i].l)+'</option>';return h+'</select></div>';}
+function epaEvPicker(ev){ev=ev||{counts:[],skills:[]};
+  var h='<div class="fld"><label>ראיות מקושרות — כמויות (התנסות מודדת)</label><div class="evpick">';
+  DB.counts.forEach(function(c){var on=(ev.counts||[]).indexOf(c.id)>=0;h+='<label class="evopt"><input type="checkbox" class="evc" value="'+c.id+'"'+(on?' checked':'')+'> '+esc(c.name)+'</label>';});
+  h+='</div></div><div class="fld"><label>ראיות מקושרות — מיומנויות</label><div class="evpick">';
+  DB.skills.forEach(function(k){var on=(ev.skills||[]).indexOf(k.id)>=0;h+='<label class="evopt"><input type="checkbox" class="evk" value="'+k.id+'"'+(on?' checked':'')+'> '+esc(k.name)+'</label>';});
+  return h+'</div></div>';}
+function gatherEv(){var counts=[],skills=[];document.querySelectorAll('#emBody .evc').forEach(function(x){if(x.checked)counts.push(x.value);});document.querySelectorAll('#emBody .evk').forEach(function(x){if(x.checked)skills.push(x.value);});return {counts:counts,skills:skills};}
+function addEpa(dom){openEdit('יכולת ליבה (EPA) חדשה',fld('e_n','שם היכולת','')+fld('e_d','תיאור','')+domSel('e_dom',dom||'ld')+targetSel('e_tg',3)+epaEvPicker(null),function(){if(!val('e_n'))return;DB.epas.push({id:uid('e'),dom:val('e_dom'),name:val('e_n'),desc:val('e_d'),target:Math.min(5,Math.max(1,parseInt(val('e_tg'))||3)),ev:gatherEv()});save();closeModal('editModal');renderEpas();toast('היכולת נוספה');});}
+function editEpa(id){var e=DB.epas.find(function(x){return x.id===id;});if(!e)return;openEdit('עריכת יכולת',fld('e_n','שם היכולת',e.name)+fld('e_d','תיאור',e.desc)+domSel('e_dom',e.dom)+targetSel('e_tg',e.target)+epaEvPicker(e.ev)+'<button class="btn btn-sm" style="color:var(--danger);margin-top:8px" onclick="delEpa(\''+id+'\')">מחק יכולת</button>',function(){e.name=val('e_n');e.desc=val('e_d');e.dom=val('e_dom');e.target=Math.min(5,Math.max(1,parseInt(val('e_tg'))||3));e.ev=gatherEv();save();closeModal('editModal');renderEpas();toast('נשמר');});}
+function delEpa(id){if(!confirm('למחוק את היכולת? מחיקה תסיר גם את הדירוגים והמשוב עליה אצל כל המתמחים.'))return;DB.epas=DB.epas.filter(function(x){return x.id!==id;});Object.keys(DB.perResident||{}).forEach(function(k){if(DB.perResident[k].epa)delete DB.perResident[k].epa[id];});save();closeModal('editModal');renderEpas();toast('היכולת נמחקה');}
 function addAid(){openEdit('חומר עזר חדש',fld('e_n','שם','')+fld('e_u','קישור','','https://...'),function(){if(!val('e_n'))return;DB.aids.push({id:uid('a'),name:val('e_n'),url:val('e_u')});save();closeModal('editModal');renderTrain();});}
 function typeSel(id,v){return '<div class="fld"><label>סוג חומר</label><select id="'+id+'">'+TYPES.map(function(t){return '<option value="'+t[0]+'"'+(v===t[0]?' selected':'')+'>'+t[1]+'</option>';}).join('')+'</select></div>';}
 function levelSel(id,v){return '<div class="fld"><label>רמת שליטה</label><select id="'+id+'">'+LEVELS.map(function(l){return '<option value="'+l[0]+'"'+(v===l[0]?' selected':'')+'>'+l[1]+'</option>';}).join('')+'</select></div>';}
@@ -1179,7 +1380,7 @@ function addResident(){if(cohortResidents().length>=3)return;
     var used=DB.residents.map(function(r){return r.color;});var color=['res1','res2','res3'].filter(function(c){return used.indexOf(c)<0;})[0]||'res3';
     var id=uid('r');var start=val('e_s')||DB.cohort.startDate;
     DB.residents.push({id:id,name:val('e_n'),color:color,mentor:val('e_m'),status:'active',startDate:start});
-    DB.perResident[id]={skillStatus:{},countProgress:{},srcMastery:{},certManual:{},examScore:'',dailyNotes:[],mgrNotes:[],feedback:{submitted:false,text:''},onboardDone:{},sourceNotes:{}};
+    DB.perResident[id]={skillStatus:{},countProgress:{},srcMastery:{},certManual:{},examScore:'',dailyNotes:[],mgrNotes:[],feedback:{submitted:false,text:''},onboardDone:{},sourceNotes:{},epa:{}};
     if(val('e_lead'))DB.cohort.monthLead=val('e_lead');
     if(first){DB.cohort.startDate=start;DB.cohort.label=cohortLabelFromStart();}
     DB.calendar.forEach(function(d){if(!d.residents)d.residents=[];if(d.residents.indexOf(id)<0)d.residents.push(id);});
@@ -1195,11 +1396,11 @@ function buildEntry(){
 }
 function enter(role,rid){ST.role=role;ST.rid=rid;document.getElementById('entry').style.display='none';document.getElementById('app').style.display='block';var lay=document.getElementById('layout'),ctx=document.getElementById('ctx');if(role==='mgr')lay.classList.add('mgr');else lay.classList.remove('mgr');ctx.className='ctx '+(role==='mgr'?'':curRes().color);document.getElementById('ctxName').textContent=role==='mgr'?'מנהל תוכנית':curRes().name;go('home');window.scrollTo(0,0);}
 function leave(){document.getElementById('app').style.display='none';document.getElementById('entry').style.display='grid';buildEntry();}
-function go(s){if((s==='admin'||s==='onboard')&&ST.role!=='mgr')s='home';ST.screen=s;document.querySelectorAll('.screen').forEach(function(e){e.classList.remove('show');});var t=document.getElementById('s-'+s);if(t)t.classList.add('show');document.querySelectorAll('.nav a,.mob-nav a').forEach(function(a){a.classList.toggle('active',a.dataset.s===s);});render();window.scrollTo(0,0);}
+function go(s){if((s==='admin'||s==='onboard'||s==='supervise')&&ST.role!=='mgr')s='home';ST.screen=s;document.querySelectorAll('.screen').forEach(function(e){e.classList.remove('show');});var t=document.getElementById('s-'+s);if(t)t.classList.add('show');document.querySelectorAll('.nav a,.mob-nav a').forEach(function(a){a.classList.toggle('active',a.dataset.s===s);});render();window.scrollTo(0,0);}
 function openModal(id){document.getElementById(id).classList.add('show');}
 function openMore(){
-  var items=[['goals','הסמכה לתורן רביעי'],['tips','טיפים קליניים'],['progress','התקדמות והערות'],['settings','הגדרות וייצוא']];
-  if(ST.role==='mgr'){items.push(['onboard','צ\'קליסט קליטה']);items.push(['admin','ניהול תוכנית']);}
+  var items=[['sources','למידה עיונית'],['goals','הסמכה לתורן רביעי'],['tips','טיפים קליניים'],['progress','התקדמות והערות'],['settings','הגדרות וייצוא']];
+  if(ST.role==='mgr'){items.push(['supervise','פיקוח על הפעילות']);items.push(['onboard','צ\'קליסט קליטה']);items.push(['admin','ניהול תוכנית']);}
   var h='';items.forEach(function(it){h+='<button class="btn" style="width:100%;justify-content:flex-start;margin-bottom:8px" onclick="closeModal(\'moreModal\');go(\''+it[0]+'\')">'+it[1]+'</button>';});
   document.getElementById('moreBody').innerHTML=h;openModal('moreModal');
 }
