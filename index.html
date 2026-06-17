@@ -261,6 +261,10 @@ a{color:inherit;text-decoration:none}
 .dom{font-size:10.5px;font-weight:700;color:var(--accent-d);background:var(--accent-soft);padding:2px 9px;border-radius:999px;white-space:nowrap}
 .evpick{display:flex;flex-wrap:wrap;gap:7px;max-height:150px;overflow:auto;padding:2px}
 .evopt{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;background:var(--bg);border:1px solid var(--line-2);border-radius:8px;padding:5px 9px;cursor:pointer}
+.rp-inp{width:100%;border:1px solid var(--line-2);border-radius:9px;padding:9px 11px;background:var(--bg);font-family:inherit;font-size:14px;color:var(--ink)}
+#planBody .fld-l{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:13px 0 5px}
+.rp-toggle{display:flex;align-items:center;gap:11px;margin-top:15px;padding:12px 14px;border:1px solid var(--line-2);border-radius:11px;cursor:pointer}
+.rp-toggle input{width:18px;height:18px;flex-shrink:0;accent-color:var(--accent)}
 .ent-seg:focus-visible{outline:2px solid var(--accent-d);outline-offset:2px}
 .ent{display:flex;gap:5px;margin:13px 0 7px}
 .ent-seg{flex:1;min-width:0;height:38px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--faint);cursor:pointer;transition:.14s}
@@ -395,6 +399,12 @@ a{color:inherit;text-decoration:none}
     <div class="mfoot"><button class="btn" onclick="closeModal('editModal')">ביטול</button><button class="btn btn-accent" id="emSave" style="flex:1">שמור</button></div>
   </div>
 </div>
+<div class="overlay" id="planModal">
+  <div class="modal" style="width:430px">
+    <h3>תוכנית התמחות למועצה המדעית</h3>
+    <div class="mbody" id="planBody"></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -414,7 +424,7 @@ var CONFIG={
   SUPABASE_URL:'', SUPABASE_KEY:''
 };
 var KEY='orientation_app_v2';
-var VERSION='4.1';  /* מתעדכן בכל שינוי */
+var VERSION='4.2';  /* מתעדכן בכל שינוי */
 var HE_DOW=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
 var HE_MONTHS=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
 var STATIONS=['אדמיניסטרציה ובטיחות','חדר לידה — צמוד מיילדת','חדר לידה — צמוד רופא בכיר','חדר ניתוח','מכון US','יולדות א׳ (HR)','יולדות ב׳','חדר קבלה','השלמות / מבחן'];
@@ -1235,7 +1245,9 @@ function renderSettings(){
   html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">ייצוא לוח החודש ליומן (.ics)</span><button class="btn btn-sm btn-accent" onclick="exportICS()">ייצא יומן</button></div><div style="font-size:13px;color:var(--muted)">הימים שמשובץ בהם '+esc(curRes().name)+'.</div></div>';
   html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">הורדת תוכנית הלימוד (.csv)</span><button class="btn btn-sm" onclick="exportCSV()">הורד CSV</button></div></div>';
   html+='<div class="cl-row"><div class="cl-h"><span class="cl-n">תיק ביצוע מתמחה (טקסט)</span><button class="btn btn-sm" onclick="exportDossier()">הורד תיק</button></div></div>';
-  html+='</div><div class="sec">מערכת</div><div class="cl"><div class="cl-row mgr-only"><div class="cl-h"><span class="cl-n">איפוס ספריית הלמידה בלבד</span><button class="btn btn-sm" onclick="resetSources()">אפס ספרייה</button></div><div style="font-size:13px;color:var(--muted)">מחזיר את רשימת המקורות לברירת המחדל (פרוטוקולים, נהלים, ניירות עמדה, ערכות, GABBE).</div></div><div class="cl-row"><div class="cl-h"><span class="cl-n">איפוס כל הנתונים לברירת מחדל</span><button class="btn btn-sm" style="color:var(--danger)" onclick="resetAll()">אפס הכל</button></div></div></div>';
+  html+='</div>';
+  if(ST.role==='mgr')html+='<div class="sec">מסמכים רשמיים</div><div class="cl"><div class="cl-row"><div class="cl-h"><span class="cl-n">תוכנית התמחות למועצה המדעית (.docx)</span><button class="btn btn-sm btn-accent" onclick="openResPlan()">הכן מסמך</button></div><div style="font-size:13px;color:var(--muted)">מכתב רשמי + טבלת רוטציות מלאה (6 שנים, או 5.5 עם פטור ממדעי יסוד) למועצה המדעית של ההסתדרות הרפואית.</div></div></div>';
+  html+='<div class="sec">מערכת</div><div class="cl"><div class="cl-row mgr-only"><div class="cl-h"><span class="cl-n">איפוס ספריית הלמידה בלבד</span><button class="btn btn-sm" onclick="resetSources()">אפס ספרייה</button></div><div style="font-size:13px;color:var(--muted)">מחזיר את רשימת המקורות לברירת המחדל (פרוטוקולים, נהלים, ניירות עמדה, ערכות, GABBE).</div></div><div class="cl-row"><div class="cl-h"><span class="cl-n">איפוס כל הנתונים לברירת מחדל</span><button class="btn btn-sm" style="color:var(--danger)" onclick="resetAll()">אפס הכל</button></div></div></div>';
   document.getElementById('s-settings').innerHTML=html;
 }
 function download(name,content,type){var blob=new Blob([content],{type:type||'text/plain;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast('הקובץ הורד');}
@@ -1291,6 +1303,127 @@ function buildDossierHTML(rid){
   ST.rid=prev;return h;
 }
 function exportDossier(){download('תיק_'+curRes().name.replace('ד״ר ','')+'.html',buildDossierHTML(ST.rid),'text/html;charset=utf-8');}
+
+/* ---------- תוכנית התמחות למועצה המדעית (DOCX) ---------- */
+var rpGender='m';
+function openResPlan(){
+  var months=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  var opts=cohortResidents().map(function(r){return '<option value="'+r.id+'">'+esc(r.name)+'</option>';}).join('')+'<option value="custom">הזנה ידנית…</option>';
+  var msel=months.map(function(m,i){return '<option value="'+(i+1)+'">'+m+'</option>';}).join('');
+  var nowY=new Date().getFullYear();
+  rpGender='m';
+  var h='<label class="fld-l">בחר/י מתמחה</label><select id="rp-doctor" class="rp-inp" onchange="rpFillFromResident()">'+opts+'</select>'+
+    '<label class="fld-l">שם המתמחה (כפי שיופיע במסמך)</label><input type="text" id="rp-name" class="rp-inp" placeholder="ד״ר שם פרטי שם משפחה">'+
+    '<label class="fld-l">מין</label><div style="display:flex;gap:8px"><button type="button" class="fbtn on" id="rp-gender-m" onclick="rpSetGender(\'m\')">זכר</button><button type="button" class="fbtn" id="rp-gender-f" onclick="rpSetGender(\'f\')">נקבה</button></div>'+
+    '<label class="fld-l">תעודת זהות</label><input type="text" id="rp-id" class="rp-inp" inputmode="numeric" placeholder="123456789">'+
+    '<label class="fld-l">תאריך תחילת התמחות (חודש/שנה)</label><div style="display:flex;gap:10px"><select id="rp-start-m" class="rp-inp" style="flex:1">'+msel+'</select><input type="number" id="rp-start-y" class="rp-inp" style="width:100px" min="2010" max="2035" value="'+nowY+'"></div>'+
+    '<label class="rp-toggle" onclick="event.stopPropagation()"><input type="checkbox" id="rp-exempt"><span><b>פטור ממדעי יסוד</b><br><span style="font-size:12px;color:var(--muted)">מקצר חצי שנה מתקופת ההתמחות</span></span></label>'+
+    '<div class="mfoot" style="margin-top:16px"><button class="btn" onclick="closeModal(\'planModal\')">ביטול</button><button class="btn btn-accent" style="flex:1" onclick="generateResidencyPlan()">הפק מסמך DOCX</button></div>';
+  document.getElementById('planBody').innerHTML=h;
+  openModal('planModal');
+  rpFillFromResident();
+}
+function rpSetGender(g){rpGender=g;var m=document.getElementById('rp-gender-m'),f=document.getElementById('rp-gender-f');if(m)m.classList.toggle('on',g==='m');if(f)f.classList.toggle('on',g==='f');}
+function rpFillFromResident(){
+  var sel=document.getElementById('rp-doctor');if(!sel||sel.value==='custom')return;
+  var r=findRes(sel.value);if(!r)return;
+  var nm=document.getElementById('rp-name');if(nm)nm.value=r.name;
+  if(r.startDate){var p=String(r.startDate).split('-');if(p.length>=2){document.getElementById('rp-start-m').value=parseInt(p[1],10);document.getElementById('rp-start-y').value=parseInt(p[0],10);}}
+}
+function ensureDocx(cb){
+  if(window.docx)return cb();
+  var urls=['https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js','https://unpkg.com/docx@8.5.0/build/index.umd.js'],i=0;
+  (function next(){
+    if(i>=urls.length){alert('לא ניתן לטעון את מנוע יצירת ה-DOCX.\nייתכן שהרשת הנוכחית (רמב״ם) חוסמת את ה-CDN — נסה/י להפיק מרשת אחרת (בית / סלולר).');return;}
+    var s=document.createElement('script');s.src=urls[i++];
+    s.onload=function(){window.docx?cb():next();};
+    s.onerror=function(){next();};
+    document.head.appendChild(s);
+  })();
+}
+function generateResidencyPlan(){
+  var name=val('rp-name'),idNum=val('rp-id');
+  var startM=parseInt(document.getElementById('rp-start-m').value,10),startY=parseInt(document.getElementById('rp-start-y').value,10);
+  var exempt=document.getElementById('rp-exempt').checked;
+  if(!name){alert('יש להזין שם מתמחה');return;}
+  if(!idNum){alert('יש להזין תעודת זהות');return;}
+  toast('מכין מסמך…');
+  ensureDocx(function(){ try{ rpBuildDoc(name,idNum,startM,startY,exempt); }catch(e){ alert('שגיאה ביצירת המסמך: '+e.message); } });
+}
+function rpBuildDoc(name,idNum,startM,startY,exempt){
+  var D=window.docx,Document=D.Document,Packer=D.Packer,Paragraph=D.Paragraph,TextRun=D.TextRun,Table=D.Table,TableRow=D.TableRow,TableCell=D.TableCell,AlignmentType=D.AlignmentType,BorderStyle=D.BorderStyle,WidthType=D.WidthType,ShadingType=D.ShadingType,VerticalAlign=D.VerticalAlign;
+  var HEB=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  function pad(n){return String(n).padStart(2,'0');}
+  function addMonths(m,y,n){var nm=m+n-1;var ny=y+Math.floor(nm/12);nm=nm%12+1;return{m:nm,y:ny};}
+  function fmtDD(m,y){var e=addMonths(m,y,6);var em=(e.m-1)||12;var ey=(e.m-1)?e.y:e.y-1;var ld=new Date(ey,em,0).getDate();return pad(ld)+'/'+pad(em)+'/'+ey;}
+  var plan=['יילוד','יילוד','גינקולוגיה','גינקולוגיה','אולטרסאונד','מדעי יסוד','יילוד','יילוד וגינקולוגיה','יילוד וגינקולוגיה','יילוד וגינקולוגיה','פריון','יילוד וגינקולוגיה'];
+  var filtered=exempt?plan.filter(function(p){return p!=='מדעי יסוד';}):plan;
+  var rotations=[],cm=startM,cy=startY;
+  filtered.forEach(function(label,i){rotations.push({label:label,sem:i+1,year:Math.floor(i/2)+1,from:'01/'+pad(cm)+'/'+cy,to:fmtDD(cm,cy)});var nx=addMonths(cm,cy,6);cm=nx.m;cy=nx.y;});
+  var today=new Date();var todayStr=pad(today.getDate())+'/'+pad(today.getMonth()+1)+'/'+today.getFullYear();
+  var startMonthName=HEB[startM-1]+' '+startY;
+  var nameClean=name.replace(/ד״ר\s*/,'').replace(/ד"ר\s*/,'').replace(/פרופ'\s*/,'').trim();
+  var rpr={font:'Calibri',size:22,rightToLeft:true};
+  var rprB=Object.assign({},rpr,{bold:true});
+  var border={style:BorderStyle.SINGLE,size:1,color:'auto'};
+  var borders={top:border,bottom:border,left:border,right:border};
+  function cellDef(w){return {borders:borders,width:{size:w,type:WidthType.DXA},verticalAlign:VerticalAlign.BOTTOM,margins:{top:40,bottom:40,left:60,right:60}};}
+  var headerRow=new TableRow({children:[
+    new TableCell(Object.assign({},cellDef(2200),{children:[new Paragraph({bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:16,text:'תקופת התמחות'}))]})]})),
+    new TableCell(Object.assign({},cellDef(1454),{children:[new Paragraph({alignment:AlignmentType.CENTER,bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:16,text:'תקופת התמחות'}))]})]})),
+    new TableCell(Object.assign({},cellDef(575),{children:[new Paragraph({alignment:AlignmentType.CENTER,bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:20,text:'שנה'}))]})]})),
+    new TableCell(Object.assign({},cellDef(1531),{children:[new Paragraph({alignment:AlignmentType.CENTER,bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:20,text:'מתאריך'}))]})]})),
+    new TableCell(Object.assign({},cellDef(1620),{children:[new Paragraph({alignment:AlignmentType.CENTER,bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:20,text:'עד תאריך'}))]})]}))
+  ]});
+  var dataRows=rotations.map(function(r,i){
+    var isFirstInYear=i===0||rotations[i-1].year!==r.year;
+    var sameYearCount=rotations.filter(function(x){return x.year===r.year;}).length;
+    var cells=[
+      new TableCell(Object.assign({},cellDef(2200),{children:[new Paragraph({bidirectional:true,children:[new TextRun(Object.assign({},rpr,{size:20,text:r.label}))]})]})),
+      new TableCell(Object.assign({},cellDef(1454),{shading:{fill:'C0C0C0',type:ShadingType.CLEAR},children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({font:'Calibri',size:20,text:String(r.sem)})]})]}))
+    ];
+    if(isFirstInYear)cells.push(new TableCell(Object.assign({},cellDef(575),{rowSpan:sameYearCount,verticalAlign:VerticalAlign.CENTER,children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({font:'Calibri',size:44,text:String(r.year)})]})]})));
+    cells.push(
+      new TableCell(Object.assign({},cellDef(1531),{children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({font:'Calibri',size:20,text:r.from})]})]})),
+      new TableCell(Object.assign({},cellDef(1620),{children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({font:'Calibri',size:20,text:r.to})]})]}))
+    );
+    return new TableRow({children:cells});
+  });
+  var infoRow1=new TableRow({children:[
+    new TableCell(Object.assign({},cellDef(2200),{children:[new Paragraph({bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:28,text:'שם המתמחה'}))]})]})),
+    new TableCell(Object.assign({},cellDef(3560),{columnSpan:3,children:[new Paragraph({alignment:AlignmentType.CENTER,bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:28,text:name}))]})]})),
+    new TableCell(Object.assign({},cellDef(1620),{children:[new Paragraph({alignment:AlignmentType.CENTER,bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:28,text:'מספר זהות'}))]})]}))
+  ]});
+  var infoRow2=new TableRow({children:[
+    new TableCell(Object.assign({},cellDef(2200),{children:[new Paragraph({bidirectional:true,children:[new TextRun(Object.assign({},rprB,{size:22,text:'תאריך תחילת התמחות'}))]})]})),
+    new TableCell(Object.assign({},cellDef(2029),{columnSpan:2,children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun(Object.assign({},rprB,{size:28,text:'01/'+pad(startM)+'/'+startY}))]})]})),
+    new TableCell(Object.assign({},cellDef(1531),{children:[new Paragraph({children:[new TextRun({font:'Calibri',size:28,text:' '})]})]})),
+    new TableCell(Object.assign({},cellDef(1620),{children:[new Paragraph({alignment:AlignmentType.CENTER,children:[new TextRun({font:'Calibri',bold:true,size:28,text:idNum})]})]}))
+  ]});
+  var doc=new Document({sections:[{
+    properties:{page:{size:{width:11906,height:16838},margin:{top:1440,right:1440,bottom:1440,left:1440}}},
+    children:[
+      new Paragraph({alignment:AlignmentType.RIGHT,bidirectional:true,children:[new TextRun(Object.assign({},rpr,{text:todayStr}))]}),
+      new Paragraph({bidirectional:true,children:[new TextRun(Object.assign({},rpr,{text:'לכבוד'}))]}),
+      new Paragraph({bidirectional:true,children:[new TextRun(Object.assign({},rpr,{text:'המועצה המדעית'}))]}),
+      new Paragraph({bidirectional:true,children:[new TextRun(Object.assign({},rpr,{text:'ההסתדרות הרפואית בישראל'}))]}),
+      new Paragraph({children:[]}),
+      new Paragraph({spacing:{line:360},bidirectional:true,children:[new TextRun(Object.assign({},rpr,{text:'שלום רב,'}))]}),
+      new Paragraph({spacing:{line:360},alignment:AlignmentType.CENTER,bidirectional:true,children:[new TextRun(Object.assign({},rprB,{underline:{type:'single'},text:'הנדון: '+name+' – תכנית התמחות אישית'}))]}),
+      new Paragraph({children:[]}),
+      new Paragraph({spacing:{line:360},bidirectional:true,children:[new TextRun(Object.assign({},rpr,{text:'להלן פירוט תכנית ההתמחות של '+name+' '+(rpGender==='f'?'שהחלה':'שהחל')+' את תקופת ההתמחות במחלקתנו ב'+startMonthName+'.'}))]}),
+      new Table({width:{size:7380,type:WidthType.DXA},columnWidths:[2200,1454,575,1531,1620],rows:[infoRow1,infoRow2,headerRow].concat(dataRows)}),
+      new Paragraph({children:[]}),
+      new Paragraph({spacing:{line:360},bidirectional:true,children:[new TextRun(Object.assign({},rpr,{text:'בברכה,'}))]}),
+      new Paragraph({spacing:{line:360},bidirectional:true,children:[new TextRun(Object.assign({},rprB,{text:"פרופ' עידו שולט"}))]}),
+      new Paragraph({bidirectional:true,children:[new TextRun(Object.assign({},rpr,{text:'מ״מ מנהל אגף נשים ויולדות'}))]})
+    ]
+  }]});
+  Packer.toBlob(doc).then(function(blob){
+    var url=URL.createObjectURL(blob);var a=document.createElement('a');a.href=url;a.download='תוכנית_התמחות_'+nameClean.replace(/\s+/g,'_')+'.docx';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);
+    closeModal('planModal');toast('המסמך הופק בהצלחה');
+  }).catch(function(e){alert('שגיאה ביצירת המסמך: '+e.message);});
+}
 
 /* ---------- ONBOARD (manager) ---------- */
 function renderOnboard(){
