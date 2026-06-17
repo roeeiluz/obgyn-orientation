@@ -265,6 +265,10 @@ a{color:inherit;text-decoration:none}
 #planBody .fld-l{display:block;font-size:12px;font-weight:700;color:var(--muted);margin:13px 0 5px}
 .rp-toggle{display:flex;align-items:center;gap:11px;margin-top:15px;padding:12px 14px;border:1px solid var(--line-2);border-radius:11px;cursor:pointer}
 .rp-toggle input{width:18px;height:18px;flex-shrink:0;accent-color:var(--accent)}
+.modal-hd{display:flex;align-items:center;justify-content:space-between;padding-inline-end:16px}
+.modal-hd h3{padding-bottom:4px}
+.modal-x{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--muted);font-size:13px;cursor:pointer;display:grid;place-items:center;flex-shrink:0}
+.modal-x:hover{background:var(--bg);color:var(--ink);border-color:var(--line-2)}
 .ent-seg:focus-visible{outline:2px solid var(--accent-d);outline-offset:2px}
 .ent{display:flex;gap:5px;margin:13px 0 7px}
 .ent-seg{flex:1;min-width:0;height:38px;border-radius:9px;border:1px solid var(--line-2);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:var(--faint);cursor:pointer;transition:.14s}
@@ -401,7 +405,7 @@ a{color:inherit;text-decoration:none}
 </div>
 <div class="overlay" id="planModal">
   <div class="modal" style="width:430px">
-    <h3>תוכנית התמחות למועצה המדעית</h3>
+    <div class="modal-hd"><h3>תוכנית התמחות למועצה המדעית</h3><button class="modal-x" onclick="closeModal('planModal')" aria-label="סגור">✕</button></div>
     <div class="mbody" id="planBody"></div>
   </div>
 </div>
